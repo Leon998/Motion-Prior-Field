@@ -1,6 +1,7 @@
 import open3d as o3d
 import copy
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 
 def load_mano():
@@ -50,11 +51,11 @@ if __name__ == "__main__":
     translation = (0.1, 0, 0)
     new_hand.translate(translation, relative=True)
 
-    rotation = (np.pi / 2, 0, 0)
+    rotation = (np.pi / 2, 0, 0)  # 绕y轴旋转90度
     R1 = new_hand.get_rotation_matrix_from_yzx(rotation)
     new_hand.rotate(R1, center=translation)
     # new_hand.scale(0.5, center=new_hand.get_center())
     print(new_hand.get_center())
 
-    o3d.visualization.draw_geometries([coordinate, init_hand_mesh])
+    o3d.visualization.draw_geometries([coordinate, init_hand_mesh, new_hand])
 

@@ -58,7 +58,7 @@ for i in range(500):
     colorlib.append(np.array([50, 50, 50]))
 
 objects = {}
-PATH = '/home/shixu/My_env/Grasp-Prior-Field/'
+PATH = '/home/shixu/My_env/Motion-Prior-Field/models/'
 
 master_chef_can = Object(name='master_chef_can',
                          file_path=PATH + 'ycb_models/002_master_chef_can/textured.obj',
