@@ -3,9 +3,9 @@ models/
 mocap/
 obj_coordinate/
 pose_estimation/
-prediction/classify
-prediction/draw_results
-prediction/fake_result
-prediction/noise_result
-ycb_models
+prediction/classify/
+prediction/draw_results/
+prediction/fake_result/
+prediction/noise_result/
+ycb_models/
 save_gposes_gtypes.py
