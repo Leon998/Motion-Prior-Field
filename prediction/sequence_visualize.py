@@ -1,3 +1,6 @@
+import os
+import sys
+sys.path.append(os.getcwd())
 import torch
 import torch.utils.data as Data
 from torch import nn
@@ -20,8 +23,8 @@ position_active = False
 #     poses = np.loadtxt('../obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_label_avg_' + str(object_cls.g_clusters) + '.txt')
 #     model = torch.load('classify/trained_models/' + object_cls.name + '/pose_' + str(object_cls.g_clusters) + '.pkl')
 
-poses = np.loadtxt('../obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
-model = torch.load('classify/trained_models/' + object_cls.name + '/noisy_diverse.pkl')
+poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
+model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/noisy_diverse.pkl')
 model.eval()
 
 # Coordinate
@@ -35,7 +38,7 @@ meshes = [coordinate, object_mesh]
 
 if __name__ == "__main__":
     # dataset_eval()
-    path = '../mocap/evaluation/' + object_cls.name + '_eval/rand_009.csv'
+    path = 'mocap/evaluation/' + object_cls.name + '_eval/rand_009.csv'
     # path = '../mocap/mug/handle_009.csv'
     Q_wh, T_wh, Q_wo, T_wo, num_frame = read_data(path)
     Q_oh, T_oh, TF_oh = sequence_coordinate_transform(Q_wh, T_wh, Q_wo, T_wo, num_frame)
@@ -57,7 +60,7 @@ if __name__ == "__main__":
     vis.create_window()
     for i, idx in enumerate(Pred):
         if i % 10 == 0:
-            pose = X[i]
+            pose = X[i].cpu()
             start_pose = hand_transform(pose, init_hand)
             gpose = poses[idx]
             pred_gpose = hand_transform(gpose, init_hand)
@@ -79,4 +82,4 @@ if __name__ == "__main__":
             vis.update_renderer()
 
             # 截图
-            vis.capture_screen_image('./classify/img/'+ 'sequence_' + str(i) + '.png')
+            # vis.capture_screen_image('prediction/classify/img/'+ 'sequence_' + str(i) + '.png')
