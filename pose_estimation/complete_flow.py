@@ -50,17 +50,22 @@ if __name__ == "__main__":
     file_path = 'pose_estimation/real_ycb.txt'
     with open(file_path, 'r') as file:
         imglines = file.readlines()
-    print(imglines)
+    # print(imglines)
+    
+    # Loading segpose model
+    data_cfg = 'pose_estimation/data/data-YCB.cfg'
+    weightfile = 'pose_estimation/model/ycb-video.pth'
+    data_options = read_data_cfg(data_cfg)
+    m = SegPoseNet(data_options)
+    m.load_weights(weightfile)
+    print('Loading weights from %s... Done!' % (weightfile))
 
     for i in range(len(imglines[:3])):
         # =========================== pose estimation=============================== #
         imgfile = imglines[i].rstrip()
         print(imgfile)
-        pose_co = pred_pose('pose_estimation/data/data-YCB.cfg',
-                             'pose_estimation/model/ycb-video.pth',
-                             imgfile,
-                             object_names_ycbvideo, target_object, k_ycbvideo, vertex_ycbvideo,
-                             bestCnt=10, conf_thresh=0.3, use_gpu=use_gpu)
+        pose_co = pred_pose(m, imgfile, object_names_ycbvideo, target_object, k_ycbvideo,
+                             vertex_ycbvideo, bestCnt=10, conf_thresh=0.3, use_gpu=use_gpu)
         print(pose_co)
 
         # =========================== coordinate transformastion =============================== #
