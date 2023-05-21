@@ -2,11 +2,12 @@ __pycache__
 models/
 mocap/
 obj_coordinate/
-pose_estimation/
+pose_estimation/*
+!pose_estimation/complete_flow.py
+!pose_estimation/visualize_mydata.py
 prediction/classify/
 prediction/draw_results/
 prediction/fake_result/
 prediction/noise_result/
-ycb_models/
 save_gposes_gtypes.py
 simulation/
