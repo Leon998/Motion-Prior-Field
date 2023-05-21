@@ -6,11 +6,10 @@ import torch.utils.data as Data
 from torch import nn
 from torch.utils.data import DataLoader
 import numpy as np
-from dataset_config import *
-from utils.object_config import objects
-from utils.hand_config import *
+from myutils.object_config import objects
+from myutils.hand_config import *
 import open3d as o3d
-from utils.utils import *
+from myutils.utils import *
 
 
 device = "cuda"
@@ -60,7 +59,7 @@ if __name__ == "__main__":
     vis.create_window()
     for i, idx in enumerate(Pred):
         if i % 10 == 0:
-            pose = X[i].cpu()
+            pose = TF_oh[i]
             start_pose = hand_transform(pose, init_hand)
             gpose = poses[idx]
             pred_gpose = hand_transform(gpose, init_hand)

@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 from dataset_config import *
-from utils.object_config import objects
+from myutils.object_config import objects
 
 object_cls = objects['mug']
 # output_dim = object_cls.g_clusters * len(object_cls.grasp_types)

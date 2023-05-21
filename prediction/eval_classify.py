@@ -4,10 +4,10 @@ from torch import nn
 from torch.utils.data import DataLoader
 import numpy as np
 from dataset_config import *
-from utils.object_config import objects
-from utils.hand_config import *
+from myutils.object_config import objects
+from myutils.hand_config import *
 import open3d as o3d
-from utils.utils import *
+from myutils.utils import *
 
 
 device = "cuda"

@@ -1,8 +1,8 @@
 import os
-from utils.utils import *
+from myutils.utils import *
 import numpy as np
-from utils.object_config import objects, colorlib
-from utils.hand_config import *
+from myutils.object_config import objects, colorlib
+from myutils.hand_config import *
 import open3d as o3d
 
 

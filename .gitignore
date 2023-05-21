@@ -9,6 +9,4 @@ prediction/fake_result/
 prediction/noise_result/
 ycb_models/
 save_gposes_gtypes.py
-simulation/sequence_drawing
-simulation/pybullet
-simulation/pybullet
+simulation/

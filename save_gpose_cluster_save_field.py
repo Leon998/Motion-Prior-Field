@@ -2,8 +2,8 @@
 save a field containing gtype and cluster labels
 """
 import numpy as np
-from utils.utils import *
-from utils.object_config import colorlib, objects
+from myutils.utils import *
+from myutils.object_config import colorlib, objects
 import os
 from save_gpose_average import save_gpose_avg
 

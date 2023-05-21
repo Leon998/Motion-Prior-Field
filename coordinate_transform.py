@@ -3,11 +3,11 @@ Transform world coordinate into object coordinate, and save as txt file.
 The transforms include the whole motion (trajectory and grasp pose)
 """
 import os
-from utils.utils import *
+from myutils.utils import *
 import numpy as np
-from utils.object_config import objects
+from myutils.object_config import objects
 import shutil
-from utils.add_gauss_noise import add_pose_noise, add_gaussian_noise
+from myutils.add_gauss_noise import add_pose_noise, add_gaussian_noise
 
 add_noise = False
 

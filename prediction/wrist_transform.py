@@ -1,10 +1,10 @@
 import os
 import sys
 sys.path.append(os.getcwd())
-from utils.utils import *
+from myutils.utils import *
 import numpy as np
-from utils.object_config import objects, colorlib
-from utils.hand_config import *
+from myutils.object_config import objects, colorlib
+from myutils.hand_config import *
 import open3d as o3d
 from scipy.spatial.transform import Rotation as R
 
@@ -44,18 +44,18 @@ if __name__ == "__main__":
     meshes.append(mid_hand)
 
     # Target pose according to grasp pose
-    target_pose = np.concatenate((gpose[:4], mid_pose[4:]))
-    target_hand = hand_transform(target_pose, init_hand)
-    target_hand.paint_uniform_color([142 / 255, 207 / 255, 201 / 255])
+    # target_pose = np.concatenate((gpose[:4], mid_pose[4:]))
+    # target_hand = hand_transform(target_pose, init_hand)
+    # target_hand.paint_uniform_color([142 / 255, 207 / 255, 201 / 255])
     # meshes.append(target_hand)
 
     print(mid_pose)
-    print(target_pose)
+    # print(target_pose)
 
     # ========================================================== #
     # Transform
     r_mid_pose = R.from_quat(mid_pose[:4]).as_matrix()
-    r_target_pose = R.from_quat(target_pose[:4]).as_matrix()
+    r_target_pose = R.from_quat(gpose[:4]).as_matrix()
     r_transform = (r_target_pose).dot(np.linalg.inv(r_mid_pose))
     # q_transform = R.from_matrix(r_transform).as_quat()
     euler_transform = R.from_matrix(r_transform).as_euler('zyx', degrees=True)

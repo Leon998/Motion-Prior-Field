@@ -1,6 +1,6 @@
-from utils.hand_config import *
-from utils.object_config import colorlib, objects
-from utils.utils import *
+from myutils.hand_config import *
+from myutils.object_config import colorlib, objects
+from myutils.utils import *
 import open3d as o3d
 
 

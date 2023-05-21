@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 import os
-from utils.object_config import *
+from myutils.object_config import *
 
 """
 Q, T mean one trial's data stack up by time (frames)
