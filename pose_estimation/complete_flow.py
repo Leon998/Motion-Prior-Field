@@ -15,18 +15,6 @@ import open3d as o3d
 import torch
 
 
-use_gpu = True
-# intrinsics
-k_ycbvideo = np.array([[0.338856700e+03, 0.00000000e+00, 3.12340100e+02],
-                               [0.00000000e+00, 0.339111500e+03, 2.46983900e+02],
-                               [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
-# 21 objects for YCB-Video dataset
-object_names_ycbvideo = ['002_master_chef_can', '003_cracker_box', '004_sugar_box', '005_tomato_soup_can', '006_mustard_bottle',
-                                 '007_tuna_fish_can', '008_pudding_box', '009_gelatin_box', '010_potted_meat_can', '011_banana',
-                                 '019_pitcher_base', '021_bleach_cleanser', '024_bowl', '025_mug', '035_power_drill', '036_wood_block',
-                                 '037_scissors', '040_large_marker', '051_large_clamp', '052_extra_large_clamp', '061_foam_brick']
-target_object = '025_mug'
-vertex_ycbvideo = np.load('pose_estimation/data/YCB-Video/YCB_vertex.npy')
 # ======================================= #
 # Rotation between Mocap and pose estimation
 # 这是因为Mocap时，将物体坐标系绕x轴旋转了90度，所以在位姿估计的时候要变换一次
@@ -47,11 +35,20 @@ meshes = [coordinate, object_mesh]
 device = "cuda"
 
 if __name__ == "__main__":
-    file_path = 'pose_estimation/real_ycb.txt'
-    with open(file_path, 'r') as file:
-        imglines = file.readlines()
-    # print(imglines)
-    
+    # Pose eatimation module initialization
+    use_gpu = True
+    # intrinsics
+    k_ycbvideo = np.array([[0.338856700e+03, 0.00000000e+00, 3.12340100e+02],
+                               [0.00000000e+00, 0.339111500e+03, 2.46983900e+02],
+                               [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+    # 21 objects for YCB-Video dataset
+    object_names_ycbvideo = ['002_master_chef_can', '003_cracker_box', '004_sugar_box', '005_tomato_soup_can', '006_mustard_bottle',
+                                 '007_tuna_fish_can', '008_pudding_box', '009_gelatin_box', '010_potted_meat_can', '011_banana',
+                                 '019_pitcher_base', '021_bleach_cleanser', '024_bowl', '025_mug', '035_power_drill', '036_wood_block',
+                                 '037_scissors', '040_large_marker', '051_large_clamp', '052_extra_large_clamp', '061_foam_brick']
+    target_object = '025_mug'
+    vertex_ycbvideo = np.load('pose_estimation/data/YCB-Video/YCB_vertex.npy')
+
     # Loading segpose model
     data_cfg = 'pose_estimation/data/data-YCB.cfg'
     weightfile = 'pose_estimation/model/ycb-video.pth'
@@ -59,6 +56,12 @@ if __name__ == "__main__":
     m = SegPoseNet(data_options)
     m.load_weights(weightfile)
     print('Loading weights from %s... Done!' % (weightfile))
+
+    # Reading images
+    file_path = 'pose_estimation/real_ycb.txt'
+    with open(file_path, 'r') as file:
+        imglines = file.readlines()
+    # print(imglines)
 
     for i in range(len(imglines[:3])):
         # =========================== pose estimation=============================== #
