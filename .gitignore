@@ -10,4 +10,6 @@ prediction/draw_results/
 prediction/fake_result/
 prediction/noise_result/
 save_gposes_gtypes.py
-simulation/
+simulation/*
+!simulation/workflow_imgs.py
+!simulation/workflow_vid.py
