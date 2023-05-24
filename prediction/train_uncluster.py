@@ -1,3 +1,6 @@
+import os
+import sys
+sys.path.append(os.getcwd())
 import torch
 import torch.utils.data as Data
 from torch import nn
@@ -7,12 +10,12 @@ import numpy as np
 from dataset_config import *
 from myutils.object_config import objects
 
-object_cls = objects['mug']
+object_cls = objects['mustard_bottle']
 # output_dim = object_cls.g_clusters * len(object_cls.grasp_types)
-poses = np.loadtxt('../obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
+poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
 output_dim = len(poses)
 print(output_dim)
-writer = SummaryWriter("classify/tensorbd/noisy_" + object_cls.name + "/diverse")
+writer = SummaryWriter("prediction/classify/tensorbd/" + object_cls.name + "/uncluster")
 
 MLP = torch.nn.Sequential(
     torch.nn.Linear(7, 128),
@@ -68,9 +71,9 @@ def t_test(dataloader, model, loss_fn, t):
 if __name__ == "__main__":
     torch.manual_seed(1)  # reproducible
 
-    path = '../obj_coordinate/' + object_cls.name + '/'
+    path = 'obj_coordinate/' + object_cls.name + '/'
     batch_size = 64
-    epochs = 300
+    epochs = 250
     # Get cpu or gpu device for training.
     device = "cuda"
     print(f"Using {device} device")
@@ -96,4 +99,7 @@ if __name__ == "__main__":
     print("Done!")
     # Save model
     # torch.save(model.state_dict(), "model.pth")
-    torch.save(model, 'classify/trained_models/' + object_cls.name + '/diverse.pkl')
+    save_path = 'prediction/classify/trained_models/' + object_cls.name
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+    torch.save(model, save_path + '/uncluster.pkl')

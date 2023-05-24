@@ -1,3 +1,6 @@
+import os
+import sys
+sys.path.append(os.getcwd())
 import torch
 import torch.utils.data as Data
 from torch import nn
@@ -7,18 +10,15 @@ import numpy as np
 from dataset_config import *
 from myutils.object_config import objects
 
-object_cls = objects['mug']
-output_dim = object_cls.g_clusters * len(object_cls.grasp_types)
-position_active = False
-if position_active:
-    input_dim = 3
-    writer = SummaryWriter("classify/tensorbd/noisy_" + object_cls.name + "/position_" + str(object_cls.g_clusters) + "_manifolds/")
-else:
-    input_dim = 7
-    writer = SummaryWriter("classify/tensorbd/noisy_" + object_cls.name + "/pose_" + str(object_cls.g_clusters) + "_manifolds/")
+object_cls = objects['tomato_soup_can']
+# output_dim = object_cls.g_clusters * len(object_cls.grasp_types)
+poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
+output_dim = len(poses)
+print(output_dim)
+writer = SummaryWriter("prediction/classify/tensorbd/" + object_cls.name + "/uncluster_noisy")
 
 MLP = torch.nn.Sequential(
-    torch.nn.Linear(input_dim, 128),
+    torch.nn.Linear(7, 128),
     torch.nn.ReLU(),
     torch.nn.Linear(128, 1024),
     torch.nn.ReLU(),
@@ -50,6 +50,7 @@ def train(dataloader, model, loss_fn, optimizer, t):
         train_loss = loss
     return train_loss
 
+
 def t_test(dataloader, model, loss_fn, t):
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
@@ -70,15 +71,14 @@ def t_test(dataloader, model, loss_fn, t):
 if __name__ == "__main__":
     torch.manual_seed(1)  # reproducible
 
-    path = 'classify/training_data/' + object_cls.name + '_field.txt'
-    batch_size = 256
-    epochs = 200
-    print('Current clusters:', object_cls.g_clusters)
+    path = 'obj_coordinate/' + object_cls.name + '/'
+    batch_size = 64
+    epochs = 250
     # Get cpu or gpu device for training.
     device = "cuda"
     print(f"Using {device} device")
 
-    _, _, train_dataloader, test_dataloader = data_loading(path, batch_size, position_active)
+    _, _, train_dataloader, test_dataloader = data_extract_diverse(path, batch_size)
 
     for X, y in train_dataloader:
         print(f"Shape of X [N, C, H, W]: {X.shape}")
@@ -97,9 +97,9 @@ if __name__ == "__main__":
         t_test(test_dataloader, model, loss_fn, t)
         scheduler.step(train_loss)
     print("Done!")
-    writer.close()
     # Save model
-    if position_active:
-        torch.save(model, 'classify/trained_models/' + object_cls.name + '/noisy_position_' + str(object_cls.g_clusters) +'.pkl')
-    else:
-        torch.save(model, 'classify/trained_models/' + object_cls.name + '/noisy_pose_' + str(object_cls.g_clusters) +'.pkl')
+    # torch.save(model.state_dict(), "model.pth")
+    save_path = 'prediction/classify/trained_models/' + object_cls.name
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+    torch.save(model, save_path + '/uncluster_noisy.pkl')

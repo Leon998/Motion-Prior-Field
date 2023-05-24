@@ -1,11 +1,16 @@
 """
-save a field containing gtype and cluster labels
+Transform world coordinate into object coordinate, and save as txt file.
+The transforms include the whole motion (trajectory and grasp pose)
 """
-import numpy as np
-from myutils.utils import *
-from myutils.object_config import colorlib, objects
 import os
+from myutils.utils import *
+import numpy as np
+from myutils.object_config import objects
+import shutil
+from myutils.add_gauss_noise import add_pose_noise, add_gaussian_noise
 from save_gpose_average import save_gpose_avg
+
+add_noise = True
 
 
 def label_stack(label, num_frame):
@@ -16,23 +21,44 @@ def label_stack(label, num_frame):
     return labels
 
 
-# def save_sub_field(pcd, label, gtype, field_path):
-#     """
-#     save sub-field according to gtypes
-#     """
-#     gtype_pcd = np.zeros((1, 6))
-#     for i, point in enumerate(pcd):
-#         gtype_idx = int(label[i, 0])
-#         if object_cls.grasp_types[gtype_idx] == gtype:
-#             color = np.array(colorlib[int(label[i, 1])]).reshape(1, 3)
-#             tmp = np.concatenate((point.reshape(1, 3), color), axis=1)
-#             gtype_pcd = np.concatenate((gtype_pcd, tmp), axis=0)
-#     gtype_pcd = gtype_pcd[1:, :]
-#     np.savetxt(field_path + '/' + gtype + '.xyzrgb', gtype_pcd)
-
-
 if __name__ == "__main__":
-    object_cls = objects['mustard_bottle']
+    object_cls = objects['tomato_soup_can']
+    path = 'mocap/' + object_cls.name + '/'
+    # Saving path
+    save_path = 'obj_coordinate/' + object_cls.name + '/'
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+    else:
+        shutil.rmtree(save_path)
+        os.mkdir(save_path)
+    # Source files
+    source_files = os.listdir(path)
+    source_files.sort()
+    for i, file in enumerate(source_files):
+        file_path = path + file
+        Q_wh, T_wh, Q_wo, T_wo, num_frame = read_data(file_path)
+        Q_oh, T_oh, TF_oh = sequence_coordinate_transform(Q_wh, T_wh, Q_wo, T_wo, num_frame)
+        # If cutting is needed
+        length = TF_oh.shape[0]
+        cutted_start = int(0.2 * length)
+        cutted_end = int(0.7 * length)
+        gpose = TF_oh[-1, :].reshape(1, 7)
+        sample_interval = 1
+        # sample every sample_interval points
+        cutted_TF_oh = np.concatenate((TF_oh[cutted_start:cutted_end:sample_interval, :], gpose), axis=0)
+        if add_noise:
+            noisy_TF_oh = add_pose_noise(cutted_TF_oh, std_q=0.15, std_t=0.015, sample=3)
+            np.savetxt(save_path + file[:-3] + 'txt', noisy_TF_oh)
+        else:
+            np.savetxt(save_path + file[:-3] + 'txt', cutted_TF_oh)
+
+    # Rotate Expansion
+    if object_cls.rotate_expansion == 180:
+        save_rotate_expansion(save_path, degree=180)
+    elif object_cls.rotate_expansion == 90:
+        save_rotate_expansion(save_path, degree=90)
+        save_rotate_expansion(save_path, degree=180)
+
     # ====================================== Save gposes gtypes ============================== #
     path = 'obj_coordinate/' + object_cls.name + '/'
     q_grasps_oh, t_grasps_oh, tf_grasps_oh, grasp_type_names = grasp_integrate(path, object_cls.grasp_types)

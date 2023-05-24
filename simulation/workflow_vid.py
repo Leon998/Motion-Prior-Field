@@ -38,9 +38,9 @@ if __name__ == "__main__":
     print('Loading weights from %s... Done!' % (weightfile))
     
     # ====================== gpose prediction module initialization ======================== #
-    object_cls = objects['mug']
+    object_cls = objects['potted_meat_can']
     poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
-    model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/noisy_diverse.pkl')
+    model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/uncluster_noisy.pkl')
     model.eval()
 
     # Coordinate
@@ -52,8 +52,13 @@ if __name__ == "__main__":
     meshes = [coordinate, object_mesh]
     device = "cuda"
 
-    capture = cv2.VideoCapture('pose_estimation/real_ycb_video.mp4')
+    # capture = cv2.VideoCapture('pose_estimation/videos/mug523.mp4')
+    capture = cv2.VideoCapture(0)
     i = 0
+
+    # Visualize
+    vis = o3d.visualization.Visualizer()
+    vis.create_window(window_name='vis', width=1440, height=1080)
 
     while capture.isOpened():
         # =========================== pose estimation=============================== #
@@ -66,15 +71,15 @@ if __name__ == "__main__":
 
         if detect_flag:
             # =========================== coordinate transformastion =============================== #
-            current_hand_pose, r_oc, t_oc = cam2handpose(pose_co)
+            current_hand_pose, r_oc, t_oc = cam2handpose(pose_co, object_cls.init_pose)
 
             start_hand = hand_transform(current_hand_pose, init_hand)
-            meshes.append(start_hand)
+            # meshes.append(start_hand)
         
             camera = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1, origin=[0, 0, 0])
             camera.translate(t_oc, relative=True)
             camera.rotate(r_oc, center=t_oc)
-            meshes.append(camera)
+            # meshes.append(camera)
 
             # ======================== grasp pose prediction ============================= #
             x = torch.from_numpy(current_hand_pose).type(torch.FloatTensor).to(device)
@@ -84,7 +89,7 @@ if __name__ == "__main__":
             pred_hand = hand_transform(gpose, init_hand)
             pred_hand.paint_uniform_color([150 / 255, 195 / 255, 125 / 255])
             pred_hand.scale(0.8, center=pred_hand.get_center())
-            meshes.append(pred_hand)
+            # meshes.append(pred_hand)
 
             # ======================== wrist joint transformation ============================= #
             wrist_joint_zyx, r_transform = wrist_joint_transform(current_hand_pose, gpose)
@@ -93,8 +98,34 @@ if __name__ == "__main__":
             transformed_hand = copy.deepcopy(start_hand)
             transformed_hand.rotate(r_transform, center=current_hand_pose[4:])
             transformed_hand.paint_uniform_color([255 / 255, 190 / 255, 122 / 255])
-            meshes.append(transformed_hand)
+            # meshes.append(transformed_hand)
+
+            # ========================= visualize in open3d ==================== #
+            ctr = vis.get_view_control()
+            param = o3d.io.read_pinhole_camera_parameters('simulation/BV_1440.json')
+
+            vis.clear_geometries()
+            vis.add_geometry(start_hand)
+            vis.add_geometry(camera)
+            vis.add_geometry(pred_hand)
+            vis.add_geometry(transformed_hand)
+            vis.add_geometry(coordinate)
+            vis.add_geometry(object_mesh)
+
+            # ctr = vis.get_view_control()
+            # ctr.set_front([0.62896083853874529, 0.48892933979393521, 0.60444715589810261])
+            # ctr.set_lookat([0.074898500367999096, 0.080563278711616546, 0.07629557461037835])
+            # ctr.set_up([-0.35855661201677358, 0.87229021616299163, -0.3324859918333018])
+            # ctr.set_zoom(1.1)
+            vis.get_render_option().load_from_json('simulation/renderoption.json')
+            ctr.convert_from_pinhole_camera_parameters(param)
+
+            # 更新窗口
+            vis.poll_events()
+            vis.update_renderer()
+            # time.sleep(0.1)
+
         i += 1
 
-    o3d.visualization.draw_geometries(meshes)
+    # o3d.visualization.draw_geometries(meshes)
 

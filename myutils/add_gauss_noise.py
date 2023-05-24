@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.append(os.getcwd())
 from myutils.utils import *
 import numpy as np
 from myutils.object_config import objects, colorlib
@@ -42,7 +44,7 @@ if __name__ == "__main__":
     # Source files
     source_files = os.listdir(path)
     source_files.sort()
-    files = [source_files[2], source_files[4], source_files[5]]
+    files = [source_files[2], source_files[3], source_files[4]]
 
     # Coordinate
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.15, origin=[0, 0, 0])
@@ -64,7 +66,7 @@ if __name__ == "__main__":
 
         for i, pose in enumerate(cutted_TF_oh):
             color = colorlib[j]
-            std_q, std_t, sample = 0.1, 0.02, 30
+            std_q, std_t, sample = 0.15, 0.02, 30
             if i % 20 == 0 and i > 0:
                 hand_raw = hand_transform(pose, init_hand)
                 hand_raw.paint_uniform_color(color)

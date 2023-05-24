@@ -8,7 +8,7 @@ class Object:
                  file_path: object,
                  init_pose: object,
                  grasp_types: object,
-                 g_clusters=4,
+                 g_clusters=1,
                  rotate_expansion: object = 0):
         self.name = name
         self.file_path = file_path
@@ -121,7 +121,7 @@ objects['gelatin_box'] = gelatin_box
 
 potted_meat_can = Object(name='potted_meat_can',
                          file_path=PATH + 'ycb_models/010_potted_meat_can/textured.obj',
-                         init_pose=(-np.pi / 2, 0, -np.pi / 2),
+                         init_pose=(-np.pi / 2, 0, 0),
                          grasp_types=['side', 'top', 'wide'],
                          rotate_expansion=180)
 objects['potted_meat_can'] = potted_meat_can
@@ -135,7 +135,7 @@ objects['banana'] = banana
 pitcher_base = Object(name='pitcher_base',
                       file_path=PATH + 'ycb_models/019_pitcher_base/textured.obj',
                       init_pose=(-np.pi / 2, 0, -np.pi / 4),
-                      grasp_types=['handle', 'side', 'top'])
+                      grasp_types=['handle', 'top'])
 objects['pitcher_base'] = pitcher_base
 
 bleach_cleanser = Object(name='bleach_cleanser',
@@ -206,10 +206,16 @@ foam_brick = Object(name='foam_brick',
 objects['foam_brick'] = foam_brick
 
 if __name__ == "__main__":
-    object_cls = objects['mug']
+    object_cls = objects['tomato_soup_can']
     # Coordinate
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.15, origin=[0, 0, 0])
     # Object
     object_mesh = object_cls.init_transform()
     meshes = [coordinate, object_mesh]
     o3d.visualization.draw_geometries(meshes)
+
+    init_pose = list(object_cls.init_pose)
+    print(init_pose, type(init_pose))
+    new_pose = [item * (180/np.pi) for item in init_pose]
+    print(new_pose)
+

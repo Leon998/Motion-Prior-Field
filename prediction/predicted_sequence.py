@@ -10,20 +10,19 @@ from myutils.object_config import objects
 from myutils.hand_config import *
 import open3d as o3d
 from myutils.utils import *
+import random
 
 
 device = "cuda"
-object_cls = objects['mug']
-position_active = False
-# if position_active:
-#     poses = np.loadtxt('../obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_label_avg_' + str(object_cls.g_clusters) + '.txt')
-#     model = torch.load('classify/trained_models/' + object_cls.name + '/position_' + str(object_cls.g_clusters) +'.pkl')
-# else:
-#     poses = np.loadtxt('../obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_label_avg_' + str(object_cls.g_clusters) + '.txt')
-#     model = torch.load('classify/trained_models/' + object_cls.name + '/pose_' + str(object_cls.g_clusters) + '.pkl')
+object_cls = objects['tomato_soup_can']
+# cluster
+# poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_label_avg_' + str(object_cls.g_clusters) + '.txt')
+# model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/pose_' + str(object_cls.g_clusters) + '.pkl')
 
+# uncluster
 poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
-model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/noisy_diverse.pkl')
+model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/uncluster_noisy.pkl')
+
 model.eval()
 
 # Coordinate
@@ -37,9 +36,10 @@ meshes = [coordinate, object_mesh]
 
 if __name__ == "__main__":
     # dataset_eval()
-    path = 'mocap/evaluation/' + object_cls.name + '_eval/rand_009.csv'
-    # path = '../mocap/mug/handle_009.csv'
-    Q_wh, T_wh, Q_wo, T_wo, num_frame = read_data(path)
+    file_path = 'mocap/' + object_cls.name + '/'
+    files = os.listdir(file_path)
+    file = random.choice(files)
+    Q_wh, T_wh, Q_wo, T_wo, num_frame = read_data(file_path + file)
     Q_oh, T_oh, TF_oh = sequence_coordinate_transform(Q_wh, T_wh, Q_wo, T_wo, num_frame)
     length = TF_oh.shape[0]
     X = torch.from_numpy(TF_oh).type(torch.FloatTensor)
@@ -51,12 +51,10 @@ if __name__ == "__main__":
             pred = model(x)
             Pred.append(pred.argmax(0).item())
     print(Pred)
-    Real = int(path[-7:-4])
-    print(Real)
 
     # Visualize
     vis = o3d.visualization.Visualizer()
-    vis.create_window()
+    vis.create_window(window_name='vis', width=1440, height=1080)
     for i, idx in enumerate(Pred):
         if i % 10 == 0:
             pose = TF_oh[i]
@@ -64,17 +62,16 @@ if __name__ == "__main__":
             gpose = poses[idx]
             pred_gpose = hand_transform(gpose, init_hand)
             pred_gpose.paint_uniform_color([150/255, 195/255, 125/255])
+
+            ctr = vis.get_view_control()
+            param = o3d.io.read_pinhole_camera_parameters('simulation/BV_1440.json')
             vis.clear_geometries()
             vis.add_geometry(start_pose)
             vis.add_geometry(pred_gpose)
             vis.add_geometry(coordinate)
             vis.add_geometry(object_mesh)
-
-            ctr = vis.get_view_control()
-            ctr.set_front([0.62896083853874529, 0.48892933979393521, 0.60444715589810261])
-            ctr.set_lookat([0.074898500367999096, 0.080563278711616546, 0.07629557461037835])
-            ctr.set_up([-0.35855661201677358, 0.87229021616299163, -0.3324859918333018])
-            ctr.set_zoom(1.1)
+            vis.get_render_option().load_from_json('simulation/renderoption.json')
+            ctr.convert_from_pinhole_camera_parameters(param)
 
             # 更新窗口
             vis.poll_events()
