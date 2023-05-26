@@ -1,0 +1,4 @@
+/home/shixu/My_env/Motion-Prior-Field/pose_estimation/images/000.jpg
+/home/shixu/My_env/Motion-Prior-Field/pose_estimation/images/001.jpg
+/home/shixu/My_env/Motion-Prior-Field/pose_estimation/images/002.jpg
+/home/shixu/My_env/Motion-Prior-Field/pose_estimation/images/003.jpg

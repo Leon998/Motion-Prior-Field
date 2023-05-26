@@ -3,10 +3,14 @@ models/
 mocap/
 obj_coordinate/
 
-pose_estimation/*
-!pose_estimation/pred_img.py
-!pose_estimation/test_video.py
-!pose_estimation/visualize_mydata.py
+pose_estimation/__pycache__
+pose_estimation/data
+pose_estimation/hand_eye_calibrate/*
+!pose_estimation/hand_eye_calibrate/calibrate.py
+pose_estimation/images
+pose_estimation/model
+pose_estimation/videos
+pose_estimation/YCB-Video-Out
 
 prediction/*
 !prediction/predicted_sequence.py
@@ -20,3 +24,6 @@ save_gposes_gtypes.py
 simulation/*
 !simulation/workflow_imgs.py
 !simulation/workflow_vid.py
+!simulation/get_o3d_view.py
+!simulation/renderoption.json
+!simulation/BV_1440.json
