@@ -58,7 +58,7 @@ for i in range(500):
     colorlib.append(np.array([50, 50, 50]))
 
 objects = {}
-PATH = '/home/shixu/My_env/Motion-Prior-Field/models/'
+PATH = 'models/'
 
 master_chef_can = Object(name='master_chef_can',
                          file_path=PATH + 'ycb_models/002_master_chef_can/textured.obj',
@@ -206,16 +206,17 @@ foam_brick = Object(name='foam_brick',
 objects['foam_brick'] = foam_brick
 
 if __name__ == "__main__":
-    object_cls = objects['tomato_soup_can']
+    object_cls = objects['mug']
     # Coordinate
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.15, origin=[0, 0, 0])
     # Object
     object_mesh = object_cls.init_transform()
+    # object_mesh = o3d.io.read_triangle_mesh('models\ycb_models/025_mug/textured.obj', True)
     meshes = [coordinate, object_mesh]
     o3d.visualization.draw_geometries(meshes)
 
-    init_pose = list(object_cls.init_pose)
-    print(init_pose, type(init_pose))
-    new_pose = [item * (180/np.pi) for item in init_pose]
-    print(new_pose)
+    # init_pose = list(object_cls.init_pose)
+    # print(init_pose, type(init_pose))
+    # new_pose = [item * (180/np.pi) for item in init_pose]
+    # print(new_pose)
 

@@ -6,7 +6,7 @@ from scipy.spatial.transform import Rotation as R
 
 def load_mano():
     # hand model
-    init_hand_mesh = o3d.io.read_triangle_mesh('/home/shixu/My_env/Grasp-Prior-Field/models/mano_left.obj')
+    init_hand_mesh = o3d.io.read_triangle_mesh('models/mano_left.obj')
     init_hand_mesh.compute_vertex_normals()
     init_hand_mesh.translate((0, 0, 0), relative=False)
 

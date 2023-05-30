@@ -22,7 +22,7 @@ def label_stack(label, num_frame):
 
 
 if __name__ == "__main__":
-    object_cls = objects['tomato_soup_can']
+    object_cls = objects['mug']
     path = 'mocap/' + object_cls.name + '/'
     # Saving path
     save_path = 'obj_coordinate/' + object_cls.name + '/'

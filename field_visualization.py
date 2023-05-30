@@ -7,7 +7,7 @@ import random
 
 
 if __name__ == "__main__":
-    object_cls = objects['tomato_soup_can']
+    object_cls = objects['mug']
     save_path = 'obj_coordinate/pcd_gposes/' + object_cls.name
     gposes_avg_path = save_path + '/' + 'gposes_label_avg_' + str(object_cls.g_clusters) + '.txt'
     field_path = 'obj_coordinate/pcd_field/' + object_cls.name

@@ -38,7 +38,7 @@ if __name__ == "__main__":
     print('Loading weights from %s... Done!' % (weightfile))
     
     # ====================== gpose prediction module initialization ======================== #
-    object_cls = objects['potted_meat_can']
+    object_cls = objects['mug']
     poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
     model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/uncluster_noisy.pkl')
     model.eval()
@@ -52,8 +52,8 @@ if __name__ == "__main__":
     meshes = [coordinate, object_mesh]
     device = "cuda"
 
-    # capture = cv2.VideoCapture('pose_estimation/videos/mug523.mp4')
-    capture = cv2.VideoCapture(0)
+    capture = cv2.VideoCapture('pose_estimation/videos/mug523.mp4')
+    # capture = cv2.VideoCapture(0)
     i = 0
 
     # Visualize
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         if not ret:
             break
         pose_co, detect_flag = pred_pose(m, imgfile, object_names_ycbvideo, object_cls.name, k_ycbvideo,
-                             vertex_ycbvideo, bestCnt=10, conf_thresh=0.3, use_gpu=use_gpu)
+                             vertex_ycbvideo, bestCnt=10, conf_thresh=0.3, use_gpu=use_gpu, vis=False)
         print(pose_co)
 
         if detect_flag:
@@ -108,7 +108,7 @@ if __name__ == "__main__":
             vis.add_geometry(start_hand)
             vis.add_geometry(camera)
             vis.add_geometry(pred_hand)
-            vis.add_geometry(transformed_hand)
+            # vis.add_geometry(transformed_hand)
             vis.add_geometry(coordinate)
             vis.add_geometry(object_mesh)
 

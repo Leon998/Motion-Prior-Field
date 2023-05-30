@@ -21,8 +21,8 @@ def evaluate(data_cfg, weightfile, vidfile, outdir, object_names, intrinsics, ve
 
     # with open(listfile, 'r') as file:
     #     imglines = file.readlines()
-    # capture = cv2.VideoCapture(vidfile)
-    capture = cv2.VideoCapture(0)
+    capture = cv2.VideoCapture(vidfile)
+    # capture = cv2.VideoCapture(0)
     i = 0
     while True:
         ret, img = capture.read()
