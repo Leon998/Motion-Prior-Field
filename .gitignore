@@ -7,6 +7,9 @@ mocap_streaming/*
 !mocap_streaming/mocap_client_archive.py
 !mocap_streaming/mocap_client.py
 !mocap_streaming/mocap_server.py
+!mocap_streaming/NatNetClient.py
+!mocap_streaming/DataDescriptions.py
+!mocap_streaming/MoCapData.py
 
 pose_estimation/__pycache__
 pose_estimation/data
