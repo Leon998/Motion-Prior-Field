@@ -10,7 +10,7 @@ from scipy.spatial.transform import Rotation as R
 
 if __name__ == "__main__":
     object_cls = objects['mug']
-    path = '/home/shixu/My_env/Motion-Prior-Field/mocap/' + object_cls.name + '/'
+    path = 'mocap/' + object_cls.name + '/'
     # Source files
     source_files = os.listdir(path)
     source_files.sort()

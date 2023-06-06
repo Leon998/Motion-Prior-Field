@@ -22,23 +22,25 @@ def read_bin_velodyne(path):
 
 def save_view_point(pcd, filename):
     vis = visualization.Visualizer()
-    vis.create_window(window_name='vis', width=1440, height=1080)
+    vis.create_window(window_name='vis', width=1080, height=720)
     vis.add_geometry(pcd)
 
-    vis.get_render_option().load_from_json('simulation/renderoption.json')
+    # vis.get_render_option().load_from_json('simulation/renderoption.json')
     vis.run()  # user changes the view and press "q" to terminate
     param = vis.get_view_control().convert_to_pinhole_camera_parameters()
+    print(param.extrinsic, param.intrinsic)
     o3d.io.write_pinhole_camera_parameters(filename, param)
-    # vis.destroy_window()
+    vis.destroy_window()
 
 
 def load_view_point(pcd, filename):
     vis = visualization.Visualizer()
-    vis.create_window(window_name='vis', width=1440, height=1080)
+    vis.create_window(window_name='vis', width=1080, height=720)
     ctr = vis.get_view_control()
     param = o3d.io.read_pinhole_camera_parameters(filename)
+    print(param.extrinsic, param.intrinsic)
     vis.add_geometry(pcd)
-    vis.get_render_option().load_from_json('simulation/renderoption.json')
+    # vis.get_render_option().load_from_json('simulation/renderoption.json')
     ctr.convert_from_pinhole_camera_parameters(param)
     vis.run()
     vis.destroy_window()

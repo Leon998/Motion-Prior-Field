@@ -1,7 +1,12 @@
 __pycache__
+can/
 models/
 mocap/
 obj_coordinate/
+mocap_streaming/*
+!mocap_streaming/mocap_client_archive.py
+!mocap_streaming/mocap_client.py
+!mocap_streaming/mocap_server.py
 
 pose_estimation/__pycache__
 pose_estimation/data

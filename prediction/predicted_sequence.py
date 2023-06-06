@@ -14,7 +14,7 @@ import random
 
 
 device = "cuda"
-object_cls = objects['tomato_soup_can']
+object_cls = objects['mug']
 # cluster
 # poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_label_avg_' + str(object_cls.g_clusters) + '.txt')
 # model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/pose_' + str(object_cls.g_clusters) + '.pkl')

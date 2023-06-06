@@ -23,6 +23,14 @@ class Object:
         R = object_mesh.get_rotation_matrix_from_xyz(self.init_pose)
         object_mesh.rotate(R)
         return object_mesh
+    
+    # def transform(self, object_mesh, pose):
+    #     translation = tuple(pose[4:])
+    #     object_mesh.translate(translation, relative=True)
+    #     rotation = tuple((pose[3], pose[0], pose[1], pose[2]))
+    #     R = object_mesh.get_rotation_matrix_from_quaternion(rotation)
+    #     object_mesh.rotate(R, center=translation)
+    #     return object_mesh
 
 
 colors = [[142, 207, 201],
