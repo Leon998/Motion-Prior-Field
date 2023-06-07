@@ -2,7 +2,6 @@ import open3d as o3d
 import copy
 import numpy as np
 from scipy.spatial.transform import Rotation as R
-import time
 
 
 def load_mano():
@@ -41,14 +40,17 @@ def hand_transform(pose, init_hand):
     hand.rotate(R, center=translation)
     return hand
 
-def incremental_hand_transform(hand, hand_pose, rotation):
-    translation = tuple(hand_pose[4:])
+def incremental_hand_transform(hand, hand_pose, translation, rotation):
+    last_translation = np.array(translation)
+    translation = np.array(hand_pose[4:])
+    delta_translation = translation - last_translation
+    
     last_rotation = rotation
     rotation = tuple((hand_pose[3], hand_pose[0], hand_pose[1], hand_pose[2]))
     last_R = hand.get_rotation_matrix_from_quaternion(last_rotation)
-    R = hand.get_rotation_matrix_from_quaternion(rotation)
-    R_transform = (R).dot(np.linalg.inv(last_R))
-    return rotation, translation, R_transform
+    current_R = hand.get_rotation_matrix_from_quaternion(rotation)
+    delta_R = (current_R).dot(np.linalg.inv(last_R))
+    return translation, rotation, delta_translation, delta_R
 
 if __name__ == "__main__":
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.2, origin=[0, 0, 0])
@@ -56,31 +58,15 @@ if __name__ == "__main__":
     hand_bias = init_hand_mesh.get_center()
     print(hand_bias)
 
+    new_hand = copy.deepcopy(init_hand_mesh)
+    translation = (0.2, 0, 0)
+    print(translation)
+    new_hand.translate(translation, relative=True)
 
-    # Visualize
-    vis = o3d.visualization.Visualizer()
-    vis.create_window(window_name='vis')
-    vis.add_geometry(coordinate)
+    rotation = (0, np.pi / 2, np.pi / 2)
+    R1 = new_hand.get_rotation_matrix_from_yzx(rotation)
+    new_hand.rotate(R1, center=translation)
+    print(new_hand.get_center())
 
-    new_hand = load_mano()
-    vis.add_geometry(new_hand)
-    i = 0
-    while True:
-        translation = (0.2, 0, 0)
-        new_hand.translate(translation + hand_bias, relative=False)
-        if i == 0:
-            rotation = (0, np.pi / 2, 0)
-            R1 = new_hand.get_rotation_matrix_from_yzx(rotation)
-            new_hand.rotate(R1, center=translation)
-        else:
-            rotation = (0, 0, 0)
-            R1 = new_hand.get_rotation_matrix_from_yzx(rotation)
-            # new_hand.rotate(R1, center=translation)
-        print(new_hand.get_center())
-        vis.update_geometry(new_hand)
-        vis.poll_events()
-        vis.update_renderer()
-        i += 1
-        time.sleep(1.5)
-    # o3d.visualization.draw_geometries([coordinate, init_hand_mesh, new_hand])
+    o3d.visualization.draw_geometries([coordinate, init_hand_mesh, new_hand])
 

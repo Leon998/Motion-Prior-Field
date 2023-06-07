@@ -51,8 +51,8 @@ if __name__ == "__main__":
     meshes = [coordinate, tag]
 
     # calibrate
-    mocap_path = "pose_estimation/hand_eye_calibrate/412_box/412_box_1.csv"
-    tagPose_path = "pose_estimation/hand_eye_calibrate/412_box/updated_tagPose_box_1.txt"
+    mocap_path = "pose_estimation/hand_eye_calibrate/607_box/box_1.csv"
+    tagPose_path = "pose_estimation/hand_eye_calibrate/607_box/updated_tagPose_box_1.txt"
     _, _, r_ch, t_ch = calibration(mocap_path, tagPose_path)
     # 这就是相机到手之间的变换关系了
     print(r_ch, t_ch)
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     np.savetxt("pose_estimation/hand_eye_calibrate/T_ch.txt", T_ch)
 
     # box_2_test
-    camera_extrinsic_path = "pose_estimation/hand_eye_calibrate/412_box/camExtrinsics_box_2.txt"
+    camera_extrinsic_path = "pose_estimation/hand_eye_calibrate/607_box/camExtrinsics_box_2.txt"
     pose_tagc = np.loadtxt(camera_extrinsic_path)
     r_tagc = pose_tagc[:, :3]
     t_tagc = pose_tagc[:, 3]
@@ -79,8 +79,8 @@ if __name__ == "__main__":
     hand_coordinate_visualize(r_tagh, t_tagh, init_hand, meshes)
 
     # real hand pose from mocap
-    mocap_path_2 = "pose_estimation/hand_eye_calibrate/412_box/412_box_2.csv"
-    tagPose_path_2 = "pose_estimation/hand_eye_calibrate/412_box/updated_tagPose_box_2.txt"
+    mocap_path_2 = "pose_estimation/hand_eye_calibrate/607_box/box_2.csv"
+    tagPose_path_2 = "pose_estimation/hand_eye_calibrate/607_box/updated_tagPose_box_2.txt"
     r_tagh0, t_tagh0, _, _ = calibration(mocap_path_2, tagPose_path_2)
     hand_coordinate_visualize(r_tagh0, t_tagh0, init_hand, meshes, paint=True)
 

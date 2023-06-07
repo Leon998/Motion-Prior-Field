@@ -21,8 +21,8 @@ def evaluate(data_cfg, weightfile, vidfile, outdir, object_names, intrinsics, ve
 
     # with open(listfile, 'r') as file:
     #     imglines = file.readlines()
-    capture = cv2.VideoCapture(vidfile)
-    # capture = cv2.VideoCapture(0)
+    # capture = cv2.VideoCapture(vidfile)
+    capture = cv2.VideoCapture(0)
     i = 0
     while True:
         ret, img = capture.read()
@@ -64,8 +64,8 @@ if __name__ == '__main__':
     # k_ycbvideo = np.array([[1.06677800e+03, 0.00000000e+00, 3.12986900e+02],
     #                        [0.00000000e+00, 1.06748700e+03, 2.41310900e+02],
     #                        [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
-    k_ycbvideo = np.array([[0.338856700e+03, 0.00000000e+00, 3.12340100e+02],
-                           [0.00000000e+00, 0.339111500e+03, 2.46983900e+02],
+    k_ycbvideo = np.array([[0.338569200e+03, 0.00000000e+00, 3.17869800e+02],
+                           [0.00000000e+00, 0.338800400e+03, 2.45317800e+02],
                            [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
     # 21 objects for YCB-Video dataset
     object_names_ycbvideo = ['002_master_chef_can', '003_cracker_box', '004_sugar_box', '005_tomato_soup_can', '006_mustard_bottle',
