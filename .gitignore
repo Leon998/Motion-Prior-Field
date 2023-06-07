@@ -28,10 +28,3 @@ prediction/*
 !prediction/wrist_transform.py
 
 save_gposes_gtypes.py
-
-simulation/*
-!simulation/workflow_imgs.py
-!simulation/workflow_vid.py
-!simulation/get_o3d_view.py
-!simulation/renderoption.json
-!simulation/BV_1440.json
