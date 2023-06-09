@@ -38,7 +38,7 @@ if __name__ == "__main__":
     print('Loading weights from %s... Done!' % (weightfile))
     
     # ====================== gpose prediction module initialization ======================== #
-    object_cls = objects['potted_meat_can']
+    object_cls = objects['mustard_bottle']
     poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
     model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/uncluster_noisy.pkl')
     model.eval()

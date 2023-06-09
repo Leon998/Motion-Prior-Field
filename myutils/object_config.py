@@ -214,7 +214,7 @@ foam_brick = Object(name='foam_brick',
 objects['foam_brick'] = foam_brick
 
 if __name__ == "__main__":
-    object_cls = objects['mug']
+    object_cls = objects['mustard_bottle']
     # Coordinate
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.15, origin=[0, 0, 0])
     # Object

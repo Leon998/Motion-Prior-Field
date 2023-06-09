@@ -40,7 +40,7 @@ if __name__ == "__main__":
         Q_oh, T_oh, TF_oh = sequence_coordinate_transform(Q_wh, T_wh, Q_wo, T_wo, num_frame)
         # If cutting is needed
         length = TF_oh.shape[0]
-        cutted_start = int(0.2 * length)
+        cutted_start = int(0.1 * length)
         cutted_end = int(0.7 * length)
         gpose = TF_oh[-1, :].reshape(1, 7)
         sample_interval = 1

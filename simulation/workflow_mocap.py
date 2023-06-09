@@ -17,7 +17,7 @@ if __name__ == "__main__":
     # pool = redis.ConnectionPool(host='localhost', port=6379, decode_responses=True)
     r = redis.Redis(host='localhost', port=6379, decode_responses=True)  
     # ====================== gpose prediction module initialization ======================== #
-    object_cls = objects['potted_meat_can']
+    object_cls = objects['mustard_bottle']
     poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
     model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/uncluster_noisy.pkl')
     model.eval()
