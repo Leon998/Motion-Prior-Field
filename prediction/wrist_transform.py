@@ -7,6 +7,8 @@ from myutils.object_config import objects, colorlib
 from myutils.hand_config import *
 import open3d as o3d
 from scipy.spatial.transform import Rotation as R
+from can.wrist_control import *
+import keyboard
 
 if __name__ == "__main__":
     object_cls = objects['mug']
@@ -68,52 +70,9 @@ if __name__ == "__main__":
     transformed_hand.paint_uniform_color([255 / 255, 190 / 255, 122 / 255])
     meshes.append(transformed_hand)
     
+    o3d.visualization.draw_geometries(meshes)
 
     # ============================ Wrist control ======================= #
-    from ctypes import *
- 
-    VCI_USBCAN2 = 4
-    STATUS_OK = 1
-    class VCI_INIT_CONFIG(Structure):  
-        _fields_ = [("AccCode", c_uint),
-                ("AccMask", c_uint),
-                ("Reserved", c_uint),
-                ("Filter", c_ubyte),
-                ("Timing0", c_ubyte),
-                ("Timing1", c_ubyte),
-                ("Mode", c_ubyte)
-                ]  
-    class VCI_CAN_OBJ(Structure):  
-        _fields_ = [("ID", c_uint),
-                ("TimeStamp", c_uint),
-                ("TimeFlag", c_ubyte),
-                ("SendType", c_ubyte),
-                ("RemoteFlag", c_ubyte),
-                ("ExternFlag", c_ubyte),
-                ("DataLen", c_ubyte),
-                ("Data", c_ubyte*8),
-                ("Reserved", c_ubyte*3)
-                ] 
- 
-    CanDLLName = 'can/ControlCAN.dll' #把DLL放到对应的目录下
-    canDLL = windll.LoadLibrary(CanDLLName)
-
- 
-    ret = canDLL.VCI_OpenDevice(VCI_USBCAN2, 0, 0)
- 
-    #初始0通道
-    vci_initconfig = VCI_INIT_CONFIG(0x80000008, 0xFFFFFFFF, 0,
-                                 0, 0x00, 0x14, 0)#波特率1000k，正常模式
-    ret = canDLL.VCI_InitCAN(VCI_USBCAN2, 0, 0, byref(vci_initconfig))
- 
-    ret = canDLL.VCI_StartCAN(VCI_USBCAN2, 0, 0)
- 
-    #初始1通道
-    ret = canDLL.VCI_InitCAN(VCI_USBCAN2, 0, 1, byref(vci_initconfig))
- 
-    ret = canDLL.VCI_StartCAN(VCI_USBCAN2, 0, 1)
- 
-    #通道1发送数据
     ubyte_array = c_ubyte*8
     wrist_rotate = - int(wrist_rotate * 255 / 180) + 128
     wrist_flip = - int(wrist_flip * 255 / 90) + 128
@@ -121,12 +80,13 @@ if __name__ == "__main__":
     ubyte_3array = c_ubyte*3
     b = ubyte_3array(0, 0 , 0)
     vci_can_obj = VCI_CAN_OBJ(0x14, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
- 
-    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
- 
-
-    #关闭
-    canDLL.VCI_CloseDevice(VCI_USBCAN2, 0) 
+    
+    while True:
+        if keyboard.is_pressed('enter'):
+            ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+            #关闭
+            canDLL.VCI_CloseDevice(VCI_USBCAN2, 0)
+            break
 
     
-    o3d.visualization.draw_geometries(meshes)
+    

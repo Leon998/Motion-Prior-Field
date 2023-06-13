@@ -13,6 +13,8 @@ from pose_estimation.utils4coordinate_tf import *
 from pose_estimation.segpose_net import SegPoseNet
 from pose_estimation.pred_img import pred_pose
 import cv2
+from can.wrist_control import *
+import keyboard
 
 
 if __name__ == "__main__":
@@ -38,7 +40,7 @@ if __name__ == "__main__":
     print('Loading weights from %s... Done!' % (weightfile))
     
     # ====================== gpose prediction module initialization ======================== #
-    object_cls = objects['mustard_bottle']
+    object_cls = objects['mug']
     poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
     model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/uncluster_noisy.pkl')
     model.eval()
@@ -52,9 +54,8 @@ if __name__ == "__main__":
     meshes = [coordinate, object_mesh]
     device = "cuda"
 
-    # capture = cv2.VideoCapture('pose_estimation/videos/mug523.mp4')
-    capture = cv2.VideoCapture(0)
-    i = 0
+    capture = cv2.VideoCapture('pose_estimation/videos/mug523.mp4')
+    # capture = cv2.VideoCapture(0)
 
     # Visualize
     vis = o3d.visualization.Visualizer()
@@ -71,15 +72,21 @@ if __name__ == "__main__":
     pred_hand_translation = (0, 0, 0)
     pred_hand_rotation = (1, 0, 0, 0)
 
+    wrist_rotate = 0
+    wrist_flip = 0
 
-    while capture.isOpened():
+
+    while True:
         # =========================== pose estimation=============================== #
         ret, imgfile = capture.read()
         if not ret:
             break
         pose_co, detect_flag = pred_pose(m, imgfile, object_names_ycbvideo, object_cls.name, k_ycbvideo,
                              vertex_ycbvideo, bestCnt=10, conf_thresh=0.3, use_gpu=use_gpu, vis=False)
-        print(pose_co)
+        # print(pose_co)
+
+        wrist_rotate = wrist_rotate
+        wrist_flip = wrist_flip
 
         if detect_flag:
             # =========================== coordinate transformastion =============================== #
@@ -115,8 +122,10 @@ if __name__ == "__main__":
             pred_hand.rotate(pred_hand_delta_R, center=pred_hand_translation)
 
             # ======================== wrist joint transformation ============================= #
-            wrist_joint_zyx, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
-            print(wrist_joint_zyx)
+            euler_transform, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
+            # print(euler_transform)
+            wrist_rotate = euler_transform[0]
+            wrist_flip = euler_transform[2]
 
             # transformed_hand = copy.deepcopy(hand)
             # transformed_hand.rotate(r_transform, center=hand_pose[4:])
@@ -131,7 +140,18 @@ if __name__ == "__main__":
             vis.update_renderer()
             # time.sleep(0.1)
 
-        i += 1
+        # ============================ Wrist control ======================= #
+        ubyte_array = c_ubyte*8
+        wrist_rotate = int(wrist_rotate * 255 / 180) + 128
+        wrist_flip = int(wrist_flip * 255 / 90) + 128
+        a = ubyte_array(0, wrist_rotate, wrist_flip, 0, 0, 0, 0, 0)
+        ubyte_3array = c_ubyte*3
+        b = ubyte_3array(0, 0 , 0)
+        vci_can_obj = VCI_CAN_OBJ(0x14, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
+        if keyboard.is_pressed('enter'):
+            ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+            #关闭
+            # canDLL.VCI_CloseDevice(VCI_USBCAN2, 0)
+            # break
 
-    # o3d.visualization.draw_geometries(meshes)
 
