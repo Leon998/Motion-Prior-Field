@@ -60,8 +60,6 @@ if __name__ == "__main__":
     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
 
     while True:
-        wrist_rotation = wrist_rotation
-        wrist_flexion = wrist_flexion
         # hand
         t_wh = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
         q_wh = np.array([float(i) for i in r.get('hand_rotation')[1:-1].split(',')])
@@ -115,14 +113,20 @@ if __name__ == "__main__":
 
         # ============================ Wrist control ======================= #
         if keyboard.is_pressed('enter'):
+            print("current joint angle = ", wrist_rotation, wrist_flexion)
+            print("current joint trans = ", - euler_joint[2], euler_joint[0])
             wrist_rotation = - euler_joint[2]
             wrist_flexion = euler_joint[0]
+            print("updated joint angle = ", wrist_rotation, wrist_flexion)
+            print("\n")
+            
             # 转十六进制
             hex_wrist_rotation = int(wrist_rotation * 255 / 360) + 128
             hex_wrist_flexion = int(wrist_flexion * 255 / 360) + 128
             a = ubyte_array(0, hex_wrist_rotation, hex_wrist_flexion, 0, 0, 0, 0, 0)
             vci_can_obj = VCI_CAN_OBJ(0x14, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
             ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+            time.sleep(1)
         elif keyboard.is_pressed('q'):
             a = ubyte_array(0, 128, 128, 0, 0, 0, 0, 0)
             vci_can_obj = VCI_CAN_OBJ(0x14, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
