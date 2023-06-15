@@ -16,7 +16,7 @@ if __name__ == "__main__":
     # Source files
     source_files = os.listdir(path)
     source_files.sort()
-    idx = 150 # 随便选的一个抓取的序号
+    idx = 150  # 随便选的一个抓取的序号
     file = source_files[idx]
     # Coordinate
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.15, origin=[0, 0, 0])
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     object_mesh = object_cls.init_transform()
     # Hand
     init_hand = load_mano()
-    meshes = [object_mesh]
+    meshes = [coordinate, object_mesh]
 
     file_path = path + file
     Q_wh, T_wh, Q_wo, T_wo, num_frame = read_data(file_path)
@@ -45,28 +45,29 @@ if __name__ == "__main__":
     mid_hand = hand_transform(mid_pose, init_hand)
     meshes.append(mid_hand)
 
-    # Target pose according to grasp pose
-    # target_pose = np.concatenate((gpose[:4], mid_pose[4:]))
-    # target_hand = hand_transform(target_pose, init_hand)
-    # target_hand.paint_uniform_color([142 / 255, 207 / 255, 201 / 255])
-    # meshes.append(target_hand)
-
-    print(mid_pose)
-    # print(target_pose)
+    print("mid_pose=", mid_pose)
+    print("target_pose=", gpose[:4])
 
     # ========================================================== #
     # Transform
     r_mid_pose = R.from_quat(mid_pose[:4]).as_matrix()
     r_target_pose = R.from_quat(gpose[:4]).as_matrix()
     r_transform = (r_target_pose).dot(np.linalg.inv(r_mid_pose))
-    # q_transform = R.from_matrix(r_transform).as_quat()
-    euler_transform = R.from_matrix(r_transform).as_euler('zyx', degrees=True)
-    print(euler_transform)
-    wrist_rotate = euler_transform[0]
-    wrist_flip = euler_transform[2]
+    r_joint = np.linalg.inv(r_mid_pose).dot(r_target_pose)
 
+    # 以下代码有问题，正在排查
+    # 这里是将mid_hand到target_pose之间的变换矩阵r_transform直接输出成欧拉角了，因此代表变换矩阵
+    # 而我们控制假肢手时，相当于把手从初始位置变换到target_pose，
+    # 因此可以考虑将target_hand和mid_hand都乘一个mid_pose的逆，变换到init_hand，在来反解旋转角
+    euler_joint = R.from_matrix(r_joint).as_euler('zyx', degrees=True)
+    print(euler_joint)
+    wrist_flexion = euler_joint[0]
+    wrist_rotation = euler_joint[2]
+    
+    
     transformed_hand = copy.deepcopy(mid_hand)
     transformed_hand.rotate(r_transform, center=mid_pose[4:])
+
     transformed_hand.paint_uniform_color([255 / 255, 190 / 255, 122 / 255])
     meshes.append(transformed_hand)
     
@@ -74,19 +75,20 @@ if __name__ == "__main__":
 
     # ============================ Wrist control ======================= #
     ubyte_array = c_ubyte*8
-    wrist_rotate = - int(wrist_rotate * 255 / 180) + 128
-    wrist_flip = - int(wrist_flip * 255 / 90) + 128
-    a = ubyte_array(0, wrist_rotate, wrist_flip, 0, 0, 0, 0, 0)
+    
+    wrist_rotation = - int(wrist_rotation * 255 / 180) + 128
+    wrist_flexion = - int(wrist_flexion * 255 / 90) + 128
+    a = ubyte_array(0, wrist_rotation, wrist_flexion, 0, 0, 0, 0, 0)
     ubyte_3array = c_ubyte*3
     b = ubyte_3array(0, 0 , 0)
     vci_can_obj = VCI_CAN_OBJ(0x14, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
     
-    while True:
-        if keyboard.is_pressed('enter'):
-            ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
-            #关闭
-            canDLL.VCI_CloseDevice(VCI_USBCAN2, 0)
-            break
+    # while True:
+    #     if keyboard.is_pressed('enter'):
+    #         ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+    #         #关闭
+    #         canDLL.VCI_CloseDevice(VCI_USBCAN2, 0)
+    #         break
 
     
     

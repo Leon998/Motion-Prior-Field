@@ -11,13 +11,15 @@ sys.path.append('pose_estimation/')
 from pose_estimation.utils import *
 from pose_estimation.utils4coordinate_tf import *
 import redis
+from can.wrist_control import *
+import keyboard
 
 
 if __name__ == "__main__":  
     # pool = redis.ConnectionPool(host='localhost', port=6379, decode_responses=True)
     r = redis.Redis(host='localhost', port=6379, decode_responses=True)  
     # ====================== gpose prediction module initialization ======================== #
-    object_cls = objects['mustard_bottle']
+    object_cls = objects['mug']
     poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
     model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/uncluster_noisy.pkl')
     model.eval()
@@ -33,7 +35,7 @@ if __name__ == "__main__":
 
     # Visualize
     vis = o3d.visualization.Visualizer()
-    vis.create_window(window_name='vis')
+    vis.create_window(window_name='vis', width=720, height=640)
     vis.add_geometry(coordinate)
     vis.add_geometry(object_mesh)
     hand = load_mano()
@@ -45,7 +47,21 @@ if __name__ == "__main__":
     rotation = (1, 0, 0, 0)
     pred_hand_translation = (0, 0, 0)
     pred_hand_rotation = (1, 0, 0, 0)
+    wrist_rotate = 0
+    wrist_flip = 0
+
+    # 初始化手腕位置
+    ubyte_array = c_ubyte*8
+    a = ubyte_array(0, 128, 128, 0, 0, 0, 0, 0)
+    ubyte_3array = c_ubyte*3
+    b = ubyte_3array(0, 0 , 0)
+    vci_can_obj = VCI_CAN_OBJ(0x14, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
+ 
+    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+
     while True:
+        wrist_rotate = wrist_rotate
+        wrist_flip = wrist_flip
         # hand
         t_wh = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
         q_wh = np.array([float(i) for i in r.get('hand_rotation')[1:-1].split(',')])
@@ -80,8 +96,10 @@ if __name__ == "__main__":
         pred_hand.rotate(pred_hand_delta_R, center=pred_hand_translation)
 
         # ======================== wrist joint transformation ============================= #
-        wrist_joint_zyx, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
-        print(wrist_joint_zyx)
+        euler_transform, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
+        # print(euler_transform)
+        wrist_rotate = euler_transform[0]
+        wrist_flip = euler_transform[2]
 
         # transformed_hand = copy.deepcopy(hand)
         # transformed_hand.rotate(r_transform, center=hand_pose[4:])
@@ -95,5 +113,16 @@ if __name__ == "__main__":
         vis.poll_events()
         vis.update_renderer()
 
-    # o3d.visualization.draw_geometries(meshes)
+        # ============================ Wrist control ======================= #
+        if keyboard.is_pressed('enter'):
+            wrist_rotate = int(wrist_rotate * 255 / 180) + 128
+            wrist_flip = int(wrist_flip * 255 / 90) + 128
+            a = ubyte_array(0, wrist_rotate, wrist_flip, 0, 0, 0, 0, 0)
+            vci_can_obj = VCI_CAN_OBJ(0x14, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
+            ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+        elif keyboard.is_pressed('q'):
+            a = ubyte_array(0, 128, 128, 0, 0, 0, 0, 0)
+            vci_can_obj = VCI_CAN_OBJ(0x14, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
+            ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+
 

@@ -54,19 +54,65 @@ def incremental_hand_transform(hand, hand_pose, translation, rotation):
 
 if __name__ == "__main__":
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.2, origin=[0, 0, 0])
-    init_hand_mesh = load_mano()
-    hand_bias = init_hand_mesh.get_center()
-    print(hand_bias)
+    init_hand = load_mano()
+    hand_bias = init_hand.get_center()
+    # print(hand_bias)
 
-    new_hand = copy.deepcopy(init_hand_mesh)
-    translation = (0.2, 0, 0)
-    print(translation)
-    new_hand.translate(translation, relative=True)
+    # new_hand = copy.deepcopy(init_hand)
+    # translation = (0.2, 0, 0)
+    # print(translation)
+    # new_hand.translate(translation, relative=True)
+    # rotation = (0, np.pi / 2, np.pi / 2)
+    # R1 = new_hand.get_rotation_matrix_from_zyx(rotation)
+    # new_hand.rotate(R1, center=translation)
+    # print(new_hand.get_center())
 
-    rotation = (0, np.pi / 2, np.pi / 2)
-    R1 = new_hand.get_rotation_matrix_from_yzx(rotation)
-    new_hand.rotate(R1, center=translation)
-    print(new_hand.get_center())
+    # o3d.visualization.draw_geometries([coordinate, init_hand_mesh, new_hand])
+    
 
-    o3d.visualization.draw_geometries([coordinate, init_hand_mesh, new_hand])
+    # mid_pose= [-0.01278572, 0.89468832, 0.0887594,  0.43759696, 0, 0, 0]
+    # mid_hand = hand_transform(mid_pose, init_hand)
+    # target_pose= [-0.39700012, 0.77675931, -0.32112729, 0.368664, 0, 0, 0]
+    # target_hand = hand_transform(target_pose, init_hand)
+
+    # r_mid_pose = R.from_quat(mid_pose[:4]).as_matrix()
+    # r_target_pose = R.from_quat(target_pose[:4]).as_matrix()
+
+
+    mid_hand = copy.deepcopy(init_hand)
+    euler1 = [30, 20, 60]
+    r1 = R.from_euler('zyx', euler1, degrees=True).as_matrix()
+    mid_hand.rotate(r1, center=(0, 0, 0))
+
+    target_hand = copy.deepcopy(init_hand)
+    euler2 = [60, 20, 60]
+    r2 = R.from_euler('zyx', euler2, degrees=True).as_matrix()
+    target_hand.rotate(r2, center=(0, 0, 0))
+
+    # 理论上我需要的关节旋转角为[30, 0, 0]，但是变换的结果肯定不对
+    # euler_transform = [30, 0, 0]
+    # r_wrist = R.from_euler('zyx', euler_transform, degrees=True).as_matrix()
+    # new_hand.rotate(r_wrist, center=(0, 0, 0))
+
+    # 这样变换结果肯定对，但是关节旋转角又不是[30, 0, 0]了
+    # r_wrist = (r2).dot(np.linalg.inv(r1))
+    # euler_transform = R.from_matrix(r_wrist).as_euler('zyx', degrees=True)
+    # print(euler_transform)  
+    # new_hand.rotate(r_wrist, center=(0, 0, 0))
+
+    # 先将目标手用当前手的pose变换到init状态
+    norm_target_hand = copy.deepcopy(target_hand)
+    norm_target_pose = np.linalg.inv(r1)
+    norm_target_hand.rotate(norm_target_pose, center=(0, 0, 0))
+    # 此时再算变换角，这里指的是从init_hand到此时的hand
+    r_wrist = np.linalg.inv(r1).dot(r2)  # 莫名其妙，r2乘r1的逆就不对，反过来就对了
+    euler_transform = R.from_matrix(r_wrist).as_euler('zyx', degrees=True)
+    print(euler_transform)
+    new_hand = copy.deepcopy(init_hand)
+    new_hand.rotate(r_wrist, center=(0, 0, 0))
+
+
+    o3d.visualization.draw_geometries([coordinate, mid_hand, target_hand, norm_target_hand, new_hand])
+
+    
 
