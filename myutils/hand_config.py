@@ -58,6 +58,7 @@ if __name__ == "__main__":
     hand_bias = init_hand.get_center()
     # print(hand_bias)
 
+    # ====== basic rotation and translation test ====== #
     # new_hand = copy.deepcopy(init_hand)
     # translation = (0.2, 0, 0)
     # print(translation)
@@ -70,15 +71,7 @@ if __name__ == "__main__":
     # o3d.visualization.draw_geometries([coordinate, init_hand_mesh, new_hand])
     
 
-    # mid_pose= [-0.01278572, 0.89468832, 0.0887594,  0.43759696, 0, 0, 0]
-    # mid_hand = hand_transform(mid_pose, init_hand)
-    # target_pose= [-0.39700012, 0.77675931, -0.32112729, 0.368664, 0, 0, 0]
-    # target_hand = hand_transform(target_pose, init_hand)
-
-    # r_mid_pose = R.from_quat(mid_pose[:4]).as_matrix()
-    # r_target_pose = R.from_quat(target_pose[:4]).as_matrix()
-
-
+    # ========== wrist joint calculate test ============ #
     mid_hand = copy.deepcopy(init_hand)
     euler1 = [30, 20, 60]
     r1 = R.from_euler('zyx', euler1, degrees=True).as_matrix()
@@ -100,7 +93,7 @@ if __name__ == "__main__":
     # print(euler_transform)  
     # new_hand.rotate(r_wrist, center=(0, 0, 0))
 
-    # 先将目标手用当前手的pose变换到init状态
+    # 因此，先将目标手用当前手的pose变换到init状态
     norm_target_hand = copy.deepcopy(target_hand)
     norm_target_pose = np.linalg.inv(r1)
     norm_target_hand.rotate(norm_target_pose, center=(0, 0, 0))

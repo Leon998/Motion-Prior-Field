@@ -16,7 +16,7 @@ if __name__ == "__main__":
     # Source files
     source_files = os.listdir(path)
     source_files.sort()
-    idx = 150  # 随便选的一个抓取的序号
+    idx = 30  # 随便选的一个抓取的序号
     file = source_files[idx]
     # Coordinate
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.15, origin=[0, 0, 0])
@@ -52,8 +52,8 @@ if __name__ == "__main__":
     # Transform
     r_mid_pose = R.from_quat(mid_pose[:4]).as_matrix()
     r_target_pose = R.from_quat(gpose[:4]).as_matrix()
-    r_transform = (r_target_pose).dot(np.linalg.inv(r_mid_pose))
-    r_joint = np.linalg.inv(r_mid_pose).dot(r_target_pose)
+    r_transform = (r_target_pose).dot(np.linalg.inv(r_mid_pose))  # 用来可视化变换
+    r_joint = np.linalg.inv(r_mid_pose).dot(r_target_pose)  # 用来计算关节变换角
 
     # 以下代码有问题，正在排查
     # 这里是将mid_hand到target_pose之间的变换矩阵r_transform直接输出成欧拉角了，因此代表变换矩阵
