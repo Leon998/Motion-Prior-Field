@@ -16,7 +16,7 @@ if __name__ == "__main__":
     # Source files
     source_files = os.listdir(path)
     source_files.sort()
-    idx = 30  # 随便选的一个抓取的序号
+    idx = 50  # 随便选的一个抓取的序号
     file = source_files[idx]
     # Coordinate
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.15, origin=[0, 0, 0])
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     # Mid pose
     length = TF_oh.shape[0]
-    mid_time = int(0.3 * length)
+    mid_time = int(0.4 * length)
     mid_pose = TF_oh[mid_time]
     mid_hand = hand_transform(mid_pose, init_hand)
     meshes.append(mid_hand)
@@ -61,8 +61,9 @@ if __name__ == "__main__":
     # 因此可以考虑将target_hand和mid_hand都乘一个mid_pose的逆，变换到init_hand，在来反解旋转角
     euler_joint = R.from_matrix(r_joint).as_euler('zyx', degrees=True)
     print(euler_joint)
+    wrist_rotation = - euler_joint[2]
     wrist_flexion = euler_joint[0]
-    wrist_rotation = euler_joint[2]
+    
     
     
     transformed_hand = copy.deepcopy(mid_hand)
@@ -76,19 +77,25 @@ if __name__ == "__main__":
     # ============================ Wrist control ======================= #
     ubyte_array = c_ubyte*8
     
-    wrist_rotation = - int(wrist_rotation * 255 / 180) + 128
-    wrist_flexion = - int(wrist_flexion * 255 / 90) + 128
-    a = ubyte_array(0, wrist_rotation, wrist_flexion, 0, 0, 0, 0, 0)
+    hex_wrist_rotation = int(wrist_rotation * 255 / 360) + 128
+    hex_wrist_flexion = int(wrist_flexion * 255 / 360) + 128
+    a = ubyte_array(0, hex_wrist_rotation, hex_wrist_flexion, 0, 0, 0, 0, 0)
     ubyte_3array = c_ubyte*3
     b = ubyte_3array(0, 0 , 0)
     vci_can_obj = VCI_CAN_OBJ(0x14, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
-    
-    # while True:
-    #     if keyboard.is_pressed('enter'):
-    #         ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
-    #         #关闭
-    #         canDLL.VCI_CloseDevice(VCI_USBCAN2, 0)
-    #         break
+
+    # ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+    # #关闭
+    # canDLL.VCI_CloseDevice(VCI_USBCAN2, 0)
+
+    while True:
+        if keyboard.is_pressed('enter'):
+            print("go")
+            ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+            #关闭
+            canDLL.VCI_CloseDevice(VCI_USBCAN2, 0)
+            break
+
 
     
     

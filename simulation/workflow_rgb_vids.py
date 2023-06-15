@@ -122,10 +122,10 @@ if __name__ == "__main__":
             pred_hand.rotate(pred_hand_delta_R, center=pred_hand_translation)
 
             # ======================== wrist joint transformation ============================= #
-            euler_transform, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
-            # print(euler_transform)
-            wrist_rotate = euler_transform[0]
-            wrist_flip = euler_transform[2]
+            euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
+            print(euler_joint)
+            wrist_flexion = euler_joint[0]
+            wrist_rotation = euler_joint[2]
 
             # transformed_hand = copy.deepcopy(hand)
             # transformed_hand.rotate(r_transform, center=hand_pose[4:])

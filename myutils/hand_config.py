@@ -99,8 +99,8 @@ if __name__ == "__main__":
     norm_target_hand.rotate(norm_target_pose, center=(0, 0, 0))
     # 此时再算变换角，这里指的是从init_hand到此时的hand
     r_wrist = np.linalg.inv(r1).dot(r2)  # 莫名其妙，r2乘r1的逆就不对，反过来就对了。猜测是因为旋转矩阵都是往左边乘的
-    euler_transform = R.from_matrix(r_wrist).as_euler('zyx', degrees=True)
-    print(euler_transform)
+    euler_joint = R.from_matrix(r_wrist).as_euler('zyx', degrees=True)
+    print(euler_joint)
     new_hand = copy.deepcopy(init_hand)
     new_hand.rotate(r_wrist, center=(0, 0, 0))
 

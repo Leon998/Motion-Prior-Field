@@ -30,6 +30,7 @@ def cam2handpose(pose_co, init_pose):
 def wrist_joint_transform(current_hand_pose, gpose):
     r_mid_pose = R.from_quat(current_hand_pose[:4]).as_matrix()
     r_target_pose = R.from_quat(gpose[:4]).as_matrix()
-    r_transform = (r_target_pose).dot(np.linalg.inv(r_mid_pose))
-    euler_transform = R.from_matrix(r_transform).as_euler('zyx', degrees=True)
-    return euler_transform, r_transform
+    r_transform = (r_target_pose).dot(np.linalg.inv(r_mid_pose))  # 用来可视化变换
+    r_joint = np.linalg.inv(r_mid_pose).dot(r_target_pose)  # 用来计算关节变换角
+    euler_joint = R.from_matrix(r_joint).as_euler('zyx', degrees=True)
+    return euler_joint, r_transform
