@@ -115,8 +115,18 @@ if __name__ == "__main__":
         if keyboard.is_pressed('enter'):
             print("current joint angle = ", wrist_rotation, wrist_flexion)
             print("current joint trans = ", - euler_joint[2], euler_joint[0])
-            wrist_rotation = - euler_joint[2]
-            wrist_flexion = euler_joint[0]
+            # 如果只要开环控制的话，这里就写一个判定函数，来记录和变更关节角。
+            wrist_rotation = wrist_rotation - euler_joint[2]
+            if wrist_rotation < -100:
+                wrist_rotation = -100
+            elif wrist_rotation > 100:
+                wrist_rotation = 100
+            wrist_flexion = wrist_flexion + euler_joint[0]
+            if wrist_flexion < -45:
+                wrist_flexion = -45
+            elif wrist_flexion > 45:
+                wrist_flexion = 45
+
             print("updated joint angle = ", wrist_rotation, wrist_flexion)
             print("\n")
             

@@ -68,7 +68,7 @@ if __name__ == "__main__":
     # new_hand.rotate(R1, center=translation)
     # print(new_hand.get_center())
 
-    # o3d.visualization.draw_geometries([coordinate, init_hand_mesh, new_hand])
+    o3d.visualization.draw_geometries([coordinate, init_hand])
     
 
     # ========== wrist joint calculate test ============ #

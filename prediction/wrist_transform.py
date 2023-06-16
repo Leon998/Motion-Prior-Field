@@ -16,7 +16,7 @@ if __name__ == "__main__":
     # Source files
     source_files = os.listdir(path)
     source_files.sort()
-    idx = 50  # 随便选的一个抓取的序号
+    idx = 155  # 随便选的一个抓取的序号
     file = source_files[idx]
     # Coordinate
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.15, origin=[0, 0, 0])
