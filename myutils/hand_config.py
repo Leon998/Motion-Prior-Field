@@ -40,17 +40,17 @@ def hand_transform(pose, init_hand):
     hand.rotate(R, center=translation)
     return hand
 
-def incremental_hand_transform(hand, hand_pose, translation, rotation):
-    last_translation = np.array(translation)
-    translation = np.array(hand_pose[4:])
-    delta_translation = translation - last_translation
+# def incremental_hand_transform(hand, hand_pose, translation, rotation):
+#     last_translation = np.array(translation)
+#     translation = np.array(hand_pose[4:])
+#     delta_translation = translation - last_translation
     
-    last_rotation = rotation
-    rotation = tuple((hand_pose[3], hand_pose[0], hand_pose[1], hand_pose[2]))
-    last_R = hand.get_rotation_matrix_from_quaternion(last_rotation)
-    current_R = hand.get_rotation_matrix_from_quaternion(rotation)
-    delta_R = (current_R).dot(np.linalg.inv(last_R))
-    return translation, rotation, delta_translation, delta_R
+#     last_rotation = rotation
+#     rotation = tuple((hand_pose[3], hand_pose[0], hand_pose[1], hand_pose[2]))
+#     last_R = hand.get_rotation_matrix_from_quaternion(last_rotation)
+#     current_R = hand.get_rotation_matrix_from_quaternion(rotation)
+#     delta_R = (current_R).dot(np.linalg.inv(last_R))
+#     return translation, rotation, delta_translation, delta_R
 
 if __name__ == "__main__":
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.2, origin=[0, 0, 0])
