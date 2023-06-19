@@ -73,13 +73,25 @@ def coordinate_transform(q_wh, t_wh, q_wo, t_wo):
     r_wh = R.from_quat(q_wh).as_matrix()  # Get hand rotation matrix from quaternion
     # Transform
     r_oh = (np.linalg.inv(r_wo)).dot(r_wh)
-    # r_oh = (r_wh).dot(np.linalg.inv(r_wo))
     q_oh = R.from_matrix(r_oh).as_quat()
-    # t_oh = t_wh + (-t_wo)  # This is right only when object is fixed, and human hand pivots
     t_oh = np.linalg.inv(r_wo).dot(
         t_wh + (-t_wo))  # Guess, pivot the object is right? Note that r_wo should be inversed
     tf_oh = np.concatenate((q_oh, t_oh), axis=0)
     return q_oh, t_oh, tf_oh
+
+def gpose2wdc(gpose, q_wo, t_wo):
+    """
+    Transform gpose (q_og, t_og in object coordinate) into world coordinate q_wg, t_wg
+    """
+    q_og = gpose[:4]
+    r_wo = R.from_quat(q_wo).as_matrix()
+    r_og = R.from_quat(q_og).as_matrix()
+    t_og = gpose[4:]
+    r_wg = r_wo.dot(r_og)
+    q_wg = R.from_matrix(r_wg).as_quat()
+    t_wg = r_wo.dot(t_og) + t_wo
+    tf_wg = np.concatenate((q_wg, t_wg), axis=0)
+    return tf_wg
 
 
 def sequence_coordinate_transform(Q_wh, T_wh, Q_wo, T_wo, num_frame):

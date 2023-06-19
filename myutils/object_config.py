@@ -23,14 +23,6 @@ class Object:
         R = object_mesh.get_rotation_matrix_from_xyz(self.init_pose)
         object_mesh.rotate(R)
         return object_mesh
-    
-    # def transform(self, object_mesh, pose):
-    #     translation = tuple(pose[4:])
-    #     object_mesh.translate(translation, relative=True)
-    #     rotation = tuple((pose[3], pose[0], pose[1], pose[2]))
-    #     R = object_mesh.get_rotation_matrix_from_quaternion(rotation)
-    #     object_mesh.rotate(R, center=translation)
-    #     return object_mesh
 
 
 colors = [[142, 207, 201],
@@ -91,7 +83,7 @@ sugar_box = Object(name='sugar_box',
 objects['sugar_box'] = sugar_box
 
 tomato_soup_can = Object(name='tomato_soup_can',
-                         file_path=PATH + 'ycb_models/005_tomato_soup_can/textured.obj',
+                         file_path=PATH + 'ycb_models/005_tomato_soup_can/textured_simple.obj',
                          init_pose=(-np.pi / 2, 0, -np.pi / 2),
                          grasp_types=['side', 'top'],
                          g_clusters=1,
@@ -99,7 +91,7 @@ tomato_soup_can = Object(name='tomato_soup_can',
 objects['tomato_soup_can'] = tomato_soup_can
 
 mustard_bottle = Object(name='mustard_bottle',
-                        file_path=PATH + 'ycb_models/006_mustard_bottle/textured.obj',
+                        file_path=PATH + 'ycb_models/006_mustard_bottle/textured_simple.obj',
                         init_pose=(-np.pi / 2, 0, -np.pi / 3),
                         grasp_types=['side1', 'side2', 'top'],
                         g_clusters=1,
@@ -128,7 +120,7 @@ gelatin_box = Object(name='gelatin_box',
 objects['gelatin_box'] = gelatin_box
 
 potted_meat_can = Object(name='potted_meat_can',
-                         file_path=PATH + 'ycb_models/010_potted_meat_can/textured.obj',
+                         file_path=PATH + 'ycb_models/010_potted_meat_can/textured_simple.obj',
                          init_pose=(-np.pi / 2, 0, 0),
                          grasp_types=['side', 'top', 'wide'],
                          rotate_expansion=180)
@@ -141,7 +133,7 @@ banana = Object(name='banana',
 objects['banana'] = banana
 
 pitcher_base = Object(name='pitcher_base',
-                      file_path=PATH + 'ycb_models/019_pitcher_base/textured.obj',
+                      file_path=PATH + 'ycb_models/019_pitcher_base/textured_simple.obj',
                       init_pose=(-np.pi / 2, 0, -np.pi / 4),
                       grasp_types=['handle', 'top'])
 objects['pitcher_base'] = pitcher_base
@@ -161,14 +153,14 @@ bowl = Object(name='bowl',
 objects['bowl'] = bowl
 
 mug = Object(name='mug',
-             file_path=PATH + 'ycb_models/025_mug/textured.obj',
+             file_path=PATH + 'ycb_models/025_mug/textured_simple.obj',
              init_pose=(-np.pi / 2, 0, 0),
              grasp_types=['handle', 'side', 'top'],
              g_clusters=1)
 objects['mug'] = mug
 
 power_drill = Object(name='power_drill',
-                     file_path=PATH + 'ycb_models/035_power_drill/textured.obj',
+                     file_path=PATH + 'ycb_models/035_power_drill/textured_simple.obj',
                      init_pose=(0, 0, 0),
                      grasp_types=['handle', 'head'],
                      g_clusters=1)

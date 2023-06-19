@@ -14,3 +14,17 @@ class assets:
         self.rotation = rotation
         self.delta_translation = delta_translation
         self.delta_R = delta_R
+    
+    def update_transform(self, mesh_pose):
+        last_translation = np.array(self.translation)
+        self.translation = np.array(mesh_pose[4:])
+        delta_translation = self.translation - last_translation
+    
+        last_rotation = self.rotation
+        self.rotation = tuple((mesh_pose[3], mesh_pose[0], mesh_pose[1], mesh_pose[2]))
+        last_R = self.mesh.get_rotation_matrix_from_quaternion(last_rotation)
+        current_R = self.mesh.get_rotation_matrix_from_quaternion(self.rotation)
+        delta_R = (current_R).dot(np.linalg.inv(last_R))
+
+        self.mesh.translate(delta_translation, relative=True)
+        self.mesh.rotate(delta_R, center=self.translation)

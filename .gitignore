@@ -21,7 +21,7 @@ pose_estimation/videos
 pose_estimation/YCB-Video-Out
 
 prediction/*
-!prediction/predicted_sequence.py
+!prediction/predict_sequence.py
 !prediction/tensorboard_check.py
 !prediction/train_uncluster_noisy.py
 !prediction/train_uncluster.py
