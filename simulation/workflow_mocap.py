@@ -9,7 +9,6 @@ import open3d as o3d
 import torch
 sys.path.append('pose_estimation/')
 from pose_estimation.utils import *
-from pose_estimation.utils4coordinate_tf import *
 import redis
 from can.wrist_control import *
 import keyboard

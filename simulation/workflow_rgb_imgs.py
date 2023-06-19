@@ -10,7 +10,6 @@ import open3d as o3d
 import torch
 sys.path.append('pose_estimation/')
 from pose_estimation.utils import *
-from pose_estimation.utils4coordinate_tf import *
 from pose_estimation.segpose_net import SegPoseNet
 from pose_estimation.pred_img import pred_pose
 
