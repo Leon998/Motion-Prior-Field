@@ -47,8 +47,11 @@ if __name__ == '__main__':
     target_object = '025_mug'
     vertex_ycbvideo = np.load('pose_estimation/data/YCB-Video/YCB_vertex.npy')
     raw_img = '/home/shixu/My_env/Motion-Prior-Field/pose_estimation/images/000.jpg'
-    pred_pose('pose_estimation/data/data-YCB.cfg',
-                             'pose_estimation/model/ycb-video.pth',
-                             raw_img,
-                             object_names_ycbvideo, target_object, k_ycbvideo, vertex_ycbvideo,
-                             bestCnt=10, conf_thresh=0.3, use_gpu=use_gpu)
+    raw_img = cv2.imread(raw_img)
+    data_cfg = 'pose_estimation/data/data-YCB.cfg'
+    weightfile = 'pose_estimation/model/ycb-video.pth'
+    data_options = read_data_cfg(data_cfg)
+    m = SegPoseNet(data_options)
+    m.load_weights(weightfile)
+    pred_pose(m, raw_img, object_names_ycbvideo, target_object, k_ycbvideo,
+              vertex_ycbvideo, bestCnt=10, conf_thresh=0.3, use_gpu=use_gpu)

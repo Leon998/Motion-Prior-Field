@@ -45,7 +45,7 @@ def load_view_point(pcd, filename):
 
 
 if __name__ == "__main__":
-    object_cls = objects['pitcher_base']
+    object_cls = objects['mug']
     # Coordinate
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.15, origin=[0, 0, 0])
     # Object

@@ -7,7 +7,7 @@ import random
 
 
 if __name__ == "__main__":
-    object_cls = objects['tomato_soup_can']
+    object_cls = objects['power_drill']
     save_path = 'obj_coordinate/pcd_gposes/' + object_cls.name
     gposes_avg_path = save_path + '/' + 'gposes_label_avg_' + str(object_cls.g_clusters) + '.txt'
     field_path = 'obj_coordinate/pcd_field/' + object_cls.name
@@ -15,7 +15,8 @@ if __name__ == "__main__":
     # if gpose_avg is not appropriate for visualizing
     gposes_raw = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
     num_gtype = len(object_cls.grasp_types)
-    file_indices = random.sample(range(0, len(gposes_raw)), num_gtype)  # 随便选的几个代表性gpose
+    # file_indices = random.sample(range(0, len(gposes_raw)), num_gtype)  # 随便选的几个代表性gpose
+    file_indices = [76, 262]
     print(file_indices)
     gposes_raw = [gposes_raw[i] for i in file_indices]
 
@@ -36,5 +37,5 @@ if __name__ == "__main__":
         meshes.append(hand_gtype)
 
     pcd = o3d.io.read_point_cloud(field_path + '/' + 'T_colored.xyzrgb')
-    meshes.append(pcd)
+    # meshes.append(pcd)
     o3d.visualization.draw_geometries(meshes)

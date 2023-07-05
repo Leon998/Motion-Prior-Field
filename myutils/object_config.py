@@ -153,7 +153,7 @@ bowl = Object(name='bowl',
 objects['bowl'] = bowl
 
 mug = Object(name='mug',
-             file_path=PATH + 'ycb_models/025_mug/textured.obj',
+             file_path=PATH + 'ycb_models/025_mug/textured_simple.obj',
              init_pose=(-np.pi / 2, 0, 0),
              grasp_types=['handle', 'side', 'top'],
              g_clusters=1)
@@ -206,7 +206,7 @@ foam_brick = Object(name='foam_brick',
 objects['foam_brick'] = foam_brick
 
 if __name__ == "__main__":
-    object_cls = objects['tomato_soup_can']
+    object_cls = objects['mug']
     # Coordinate
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.15, origin=[0, 0, 0])
     # Object

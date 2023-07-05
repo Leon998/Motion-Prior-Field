@@ -5,7 +5,7 @@ import open3d as o3d
 
 
 if __name__ == "__main__":
-    object_cls = objects['mustard_bottle']
+    object_cls = objects['mug']
     gtype = 'side'
     save_path = 'obj_coordinate/pcd_gposes/' + object_cls.name
     gposes_path = save_path + '/' + 'gposes_raw.txt'

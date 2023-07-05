@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
         if detect_flag:
             # =========================== coordinate transformastion =============================== #
-            current_hand_pose, r_oc, t_oc = cam2handpose(pose_co)
+            current_hand_pose, r_oc, t_oc = cam2handpose(pose_co, object_cls.init_pose)
 
             start_hand = hand_transform(current_hand_pose, init_hand)
             # meshes.append(start_hand)

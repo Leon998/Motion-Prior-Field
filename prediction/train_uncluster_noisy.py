@@ -10,7 +10,7 @@ import numpy as np
 from dataset_config import *
 from myutils.object_config import objects
 
-object_cls = objects['tomato_soup_can']
+object_cls = objects['mug']
 # output_dim = object_cls.g_clusters * len(object_cls.grasp_types)
 poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
 output_dim = len(poses)
