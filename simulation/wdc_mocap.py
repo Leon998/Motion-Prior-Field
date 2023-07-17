@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     # Visualize
     vis = o3d.visualization.Visualizer()
-    vis.create_window(window_name='vis', width=720, height=640)
+    vis.create_window(window_name='vis', width=1080, height=720)
     vis.add_geometry(coordinate)
 
     object = assets(mesh=object_cls.init_transform())

@@ -109,16 +109,16 @@ def do_detect(model, rawimg, intrinsics, bestCnt, conf_thresh, use_gpu=False):
 
     t4 = time.time()
 
-    if True:
-    # if False:
-        print('-----------------------------------')
-        print(' image to tensor : %f' % (t1 - t0))
-        if use_gpu:
-            print('  tensor to cuda : %f' % (t2 - t1))
-        print('         predict : %f' % (t3 - t2))
-        print('          fusion : %f' % (t4 - t3))
-        print('           total : %f' % (t4 - t0))
-        print('-----------------------------------')
+    # if True:
+    # # if False:
+    #     print('-----------------------------------')
+    #     print(' image to tensor : %f' % (t1 - t0))
+    #     if use_gpu:
+    #         print('  tensor to cuda : %f' % (t2 - t1))
+    #     print('         predict : %f' % (t3 - t2))
+    #     print('          fusion : %f' % (t4 - t3))
+    #     print('           total : %f' % (t4 - t0))
+    #     print('-----------------------------------')
     return predPose
 
 def fusion(output, width, height, intrinsics, conf_thresh, batchIdx, bestCnt):
