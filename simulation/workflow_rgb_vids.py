@@ -4,6 +4,7 @@ sys.path.append(os.getcwd())
 import numpy as np
 from myutils.hand_config import *
 from myutils.object_config import objects
+from myutils.assets_config import assets
 from myutils.utils import *
 import open3d as o3d
 import torch
@@ -12,7 +13,7 @@ from pose_estimation.utils import *
 from pose_estimation.segpose_net import SegPoseNet
 from pose_estimation.pred_img import pred_pose
 import cv2
-from can.wrist_control import *
+from can.archive_wrist_control import *
 import keyboard
 
 
@@ -39,9 +40,10 @@ if __name__ == "__main__":
     print('Loading weights from %s... Done!' % (weightfile))
     
     # ====================== gpose prediction module initialization ======================== #
+    subject = 'shixu/'
     object_cls = objects['mug']
-    poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
-    model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/uncluster_noisy.pkl')
+    poses = np.loadtxt('prediction/module/' + subject +'gposes/' + object_cls.name + '/gposes_raw.txt')
+    model = torch.load('prediction/module/' + subject +'trained_models/' + object_cls.name + '/' + subject[:-1] +'_uncluster_noisy.pkl')
     model.eval()
 
     # Coordinate
@@ -50,32 +52,30 @@ if __name__ == "__main__":
     object_mesh = object_cls.init_transform()
     # Hand
     init_hand = load_mano()
-    meshes = [coordinate, object_mesh]
     device = "cuda"
 
-    capture = cv2.VideoCapture('pose_estimation/videos/mug523.mp4')
-    # capture = cv2.VideoCapture(0)
+    # capture = cv2.VideoCapture('pose_estimation/videos/mug523.mp4')
+    capture = cv2.VideoCapture(0)
 
     # Visualize
     vis = o3d.visualization.Visualizer()
     vis.create_window(window_name='vis', width=1080, height=720)
     vis.add_geometry(coordinate)
     vis.add_geometry(object_mesh)
-    hand = load_mano()
-    pred_hand = load_mano()
-    pred_hand.paint_uniform_color([150 / 255, 195 / 255, 125 / 255])
-    vis.add_geometry(hand)
-    vis.add_geometry(pred_hand)
-    translation = (0, 0, 0)
-    rotation = (1, 0, 0, 0)
-    pred_hand_translation = (0, 0, 0)
-    pred_hand_rotation = (1, 0, 0, 0)
-
-    wrist_rotate = 0
-    wrist_flip = 0
+    hand = assets(mesh=load_mano())
+    pred_hand = assets(mesh=load_mano())
+    pred_hand.mesh.paint_uniform_color([150 / 255, 195 / 255, 125 / 255])
+    vis.add_geometry(hand.mesh)
+    vis.add_geometry(pred_hand.mesh)
 
 
+    ubyte_array = c_ubyte*8
+    ubyte_3array = c_ubyte*3
+    wrist_flexion = 0
+    wrist_rotation = 0
     while True:
+        wrist_flexion = wrist_flexion
+        wrist_rotation = wrist_rotation
         # =========================== pose estimation=============================== #
         ret, imgfile = capture.read()
         if not ret:
@@ -84,26 +84,13 @@ if __name__ == "__main__":
                              vertex_ycbvideo, bestCnt=10, conf_thresh=0.3, use_gpu=use_gpu, vis=False)
         # print(pose_co)
 
-        wrist_rotate = wrist_rotate
-        wrist_flip = wrist_flip
 
         if detect_flag:
             # =========================== coordinate transformastion =============================== #
             hand_pose, r_oc, t_oc = cam2handpose(pose_co, object_cls.init_pose)
 
             # hand transform
-            translation, rotation, delta_translation, delta_R = incremental_hand_transform(hand, 
-                                                                                   hand_pose, 
-                                                                                   translation, 
-                                                                                   rotation)
-
-            hand.translate(delta_translation, relative=True)
-            hand.rotate(delta_R, center=translation)
-
-            # camera
-            # camera = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1, origin=[0, 0, 0])
-            # camera.translate(t_oc, relative=True)
-            # camera.rotate(r_oc, center=t_oc)
+            hand.update_transform(hand_pose)
 
             # ======================== grasp pose prediction ============================= #
             x = torch.from_numpy(hand_pose).type(torch.FloatTensor).to(device)
@@ -112,27 +99,21 @@ if __name__ == "__main__":
             pred_gpose = poses[idx]
 
             # pred_hand transform
-            pred_hand_translation, pred_hand_rotation, pred_hand_delta_translation, pred_hand_delta_R = incremental_hand_transform(pred_hand, 
-                                                                                   pred_gpose, 
-                                                                                   pred_hand_translation, 
-                                                                                   pred_hand_rotation)
-
-            pred_hand.translate(pred_hand_delta_translation, relative=True)
-            pred_hand.rotate(pred_hand_delta_R, center=pred_hand_translation)
+            pred_hand.update_transform(pred_gpose)
 
             # ======================== wrist joint transformation ============================= #
             euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
             print(euler_joint)
-            wrist_flexion = euler_joint[0]
-            wrist_rotation = euler_joint[2]
+            # wrist_flexion = - euler_joint[0]
+            # wrist_rotation = - euler_joint[2]
 
             # transformed_hand = copy.deepcopy(hand)
             # transformed_hand.rotate(r_transform, center=hand_pose[4:])
             # transformed_hand.paint_uniform_color([255 / 255, 190 / 255, 122 / 255])
 
             # ========================= visualize in open3d ==================== #
-            vis.update_geometry(hand)
-            vis.update_geometry(pred_hand)
+            vis.update_geometry(hand.mesh)
+            vis.update_geometry(pred_hand.mesh)
 
             # 更新窗口
             vis.poll_events()
@@ -140,17 +121,37 @@ if __name__ == "__main__":
             # time.sleep(0.1)
 
         # ============================ Wrist control ======================= #
-        ubyte_array = c_ubyte*8
-        wrist_rotate = int(wrist_rotate * 255 / 180) + 128
-        wrist_flip = int(wrist_flip * 255 / 90) + 128
-        a = ubyte_array(0, wrist_rotate, wrist_flip, 0, 0, 0, 0, 0)
-        ubyte_3array = c_ubyte*3
-        b = ubyte_3array(0, 0 , 0)
-        vci_can_obj = VCI_CAN_OBJ(0x14, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
         if keyboard.is_pressed('enter'):
-            ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
-            #关闭
-            # canDLL.VCI_CloseDevice(VCI_USBCAN2, 0)
-            # break
+            print("current joint angle = ", wrist_flexion, wrist_rotation)
+            print("current joint trans = ", - euler_joint[0], - euler_joint[2])
+            wrist_flexion = wrist_flexion - euler_joint[0]
+            if wrist_flexion < -45:
+                wrist_flexion = -45
+            elif wrist_flexion > 45:
+                wrist_flexion = 45
+            wrist_rotation = wrist_rotation - euler_joint[2]
+            if wrist_rotation < -100:
+                wrist_rotation = -100
+            elif wrist_rotation > 100:
+                wrist_rotation = 100
+            
 
+            print("updated joint angle = ", wrist_rotation, wrist_flexion)
+            print("\n")
+            
+            # 转十六进制
+            flexion_degree = int(wrist_flexion)
+            rotation_degree = int(wrist_rotation)
+            wrist_rotation = rotation_degree if rotation_degree >= 0 else -rotation_degree + 128
+            wrist_flexion = flexion_degree if flexion_degree >= 0 else -flexion_degree + 128
+            a = ubyte_array(2, 0, wrist_flexion, wrist_rotation, 0, 0, 0, 0)
+            b = ubyte_3array(0, 0 , 0)
+            vci_can_obj = VCI_CAN_OBJ(0x13141314, 0, 0, 1, 0, 1,  8, a, b)#单次发送，0x14为手腕id
+            ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+            time.sleep(1)
+        elif keyboard.is_pressed('q'):
+            a = ubyte_array(2, 0, 0, 0, 0, 0, 0, 0)
+            b = ubyte_3array(0, 0 , 0)
+            vci_can_obj = VCI_CAN_OBJ(0x13141314, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
+            ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
 

@@ -9,7 +9,7 @@ from myutils.utils import *
 import open3d as o3d
 import torch
 import redis
-from can.wrist_control import *
+from can.archive_wrist_control import *
 import keyboard, time
 
 

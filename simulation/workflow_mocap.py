@@ -10,7 +10,7 @@ import torch
 sys.path.append('pose_estimation/')
 from pose_estimation.utils import *
 import redis
-from can.wrist_control import *
+from can.archive_wrist_control import *
 import keyboard
 
 

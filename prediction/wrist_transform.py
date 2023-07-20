@@ -7,7 +7,7 @@ from myutils.object_config import objects, colorlib
 from myutils.hand_config import *
 import open3d as o3d
 from scipy.spatial.transform import Rotation as R
-from can.wrist_control import *
+from can.archive_wrist_control import *
 import keyboard
 
 if __name__ == "__main__":

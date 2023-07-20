@@ -15,10 +15,11 @@ import random
 
 
 device = "cuda"
+subject = 'subjects/'
 object_cls = objects['mug']
 
-poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
-model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/uncluster_noisy.pkl')
+poses = np.loadtxt('prediction/module/' + subject +'gposes/' + object_cls.name + '/gposes_raw.txt')
+model = torch.load('prediction/module/' + subject +'trained_models/' + object_cls.name + '/' + subject[:-1] +'_uncluster_noisy.pkl')
 
 model.eval()
 
@@ -27,7 +28,7 @@ coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.2, origin=
 
 # Visualize
 vis = o3d.visualization.Visualizer()
-vis.create_window(window_name='vis', width=720, height=640)
+vis.create_window(window_name='vis')
 vis.add_geometry(coordinate)
 
 object = assets(mesh=object_cls.init_transform())
@@ -42,7 +43,7 @@ vis.add_geometry(pred_hand.mesh)
 
 if __name__ == "__main__":    
     # dataset_eval()
-    file_path = 'mocap/' + object_cls.name + '/'
+    file_path = 'mocap/' + subject + object_cls.name + '/'
     files = os.listdir(file_path)
     file = random.choice(files)
     Q_wh, T_wh, Q_wo, T_wo, num_frame = read_data(file_path + file)
