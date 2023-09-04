@@ -65,18 +65,18 @@ if __name__ == "__main__":
         #     vci_can_obj = VCI_CAN_OBJ(0x13141314, 0, 0, 1, 0, 1,  8, a, b)#单次发送，0x14为手腕id
         #     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
         #     time.sleep(1)
-        degree = (-45, -5)
+        degree = (0, 0)
         auto_control(degree)
         time.sleep(3)
 
-        degree = (-10, 40)
+        degree = (30, 80)
         auto_control(degree)
         time.sleep(3)
 
-        degree = (45, -45)
+        degree = (50, 20)
         auto_control(degree)
         time.sleep(3)
-        degree = (-45, -5)
+        degree = (0, 0)
         auto_control(degree)
 
         break

@@ -9,8 +9,9 @@ from myutils.utils import *
 import open3d as o3d
 import torch
 import redis
-from can.archive_wrist_control import *
+from can.hand_control import *
 import keyboard, time
+import math
 
 
 if __name__ == "__main__":  
@@ -49,6 +50,8 @@ if __name__ == "__main__":
  
     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
 
+    flexion_degree, rotation_degree = read_wrist()
+
     while True:
         # hand
         t_wh = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
@@ -69,11 +72,6 @@ if __name__ == "__main__":
         pred_gpose = poses[idx]
         pred_gpose_wdc = gpose2wdc(pred_gpose, q_wo, t_wo)
 
-        # ======================== wrist joint transformation ============================= #
-        euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
-        # print(euler_joint)
-        
-
         # ========================= update transform ==================== #
         hand.update_transform(hand_pose_wdc)
         pred_hand.update_transform(pred_gpose_wdc)
@@ -84,38 +82,30 @@ if __name__ == "__main__":
         vis.update_geometry(object.mesh)
 
         # 更新窗口
-        vis.poll_events()
-        vis.update_renderer()
+        p1, p2 = hand_pose_wdc[-3:], object_pose_wdc[-3:]
+        p3=p2-p1
+        p4=math.sqrt(pow(p3[0],2)+pow(p3[1],2)+pow(p3[2],2))
+        if p4 > 0.2:
+            # 距离足够远才更新
+            vis.poll_events()
+            vis.update_renderer()
 
-        # ============================ Wrist control ======================= #
-        # if keyboard.is_pressed('enter'):
-        #     print("current joint angle = ", wrist_rotation, wrist_flexion)
-        #     print("current joint trans = ", - euler_joint[2], euler_joint[0])
-        #     # 如果只要开环控制的话，这里就写一个判定函数，来记录和变更关节角。
-        #     wrist_rotation = wrist_rotation - euler_joint[2]
-        #     if wrist_rotation < -100:
-        #         wrist_rotation = -100
-        #     elif wrist_rotation > 100:
-        #         wrist_rotation = 100
-        #     wrist_flexion = wrist_flexion + euler_joint[0]
-        #     if wrist_flexion < -45:
-        #         wrist_flexion = -45
-        #     elif wrist_flexion > 45:
-        #         wrist_flexion = 45
+        # ======================== wrist joint transformation ============================= #
+        if keyboard.is_pressed('enter'):
+            euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
+            flexion_degree += -euler_joint[0]
+            rotation_degree += -euler_joint[2]
+            flexion_degree, rotation_degree = wrist_limit(flexion_degree, rotation_degree)
+            wrist_tf(flexion_degree, rotation_degree)
+            hand_tf(0xA1, 0x02)
+            time.sleep(1.5)
+            flexion_degree, rotation_degree = read_wrist()
+        elif keyboard.is_pressed('q'):
+            wrist_tf(0, 0)
+            time.sleep(1.5)
+            flexion_degree, rotation_degree = read_wrist()
+        
+        print(flexion_degree, rotation_degree)
 
-        #     print("updated joint angle = ", wrist_rotation, wrist_flexion)
-        #     print("\n")
-            
-        #     # 转十六进制
-        #     hex_wrist_rotation = int(wrist_rotation * 255 / 360) + 128
-        #     hex_wrist_flexion = int(wrist_flexion * 255 / 360) + 128
-        #     a = ubyte_array(0, hex_wrist_rotation, hex_wrist_flexion, 0, 0, 0, 0, 0)
-        #     vci_can_obj = VCI_CAN_OBJ(0x14, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
-        #     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
-        #     time.sleep(1)
-        # elif keyboard.is_pressed('q'):
-        #     a = ubyte_array(0, 128, 128, 0, 0, 0, 0, 0)
-        #     vci_can_obj = VCI_CAN_OBJ(0x14, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
-        #     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
 
 
