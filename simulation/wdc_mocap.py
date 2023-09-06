@@ -106,7 +106,7 @@ if __name__ == "__main__":
             vis.update_renderer()
 
         # ======================== wrist joint transformation ============================= #
-        if keyboard.is_pressed('space'):
+        if keyboard.is_pressed('ctrl'):
             euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
             flexion_degree += -euler_joint[0]
             rotation_degree += -euler_joint[2]

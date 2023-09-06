@@ -135,7 +135,7 @@ if __name__ == "__main__":
     flexion_degree, rotation_degree = 0, 0
     grasp_type = grasp_other
     while True:
-        if keyboard.is_pressed('space'):
+        if keyboard.is_pressed('ctrl'):
             wrist_tf(30, 45)
             flexion_degree, rotation_degree = read_wrist()
         elif keyboard.is_pressed('backspace'):
