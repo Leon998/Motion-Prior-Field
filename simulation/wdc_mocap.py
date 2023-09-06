@@ -39,6 +39,10 @@ if __name__ == "__main__":
     vis.add_geometry(hand.mesh)
 
     target_idx = random.randint(0,len(poses))
+    if object_cls == mug & target_idx < 60:
+        grasp_type = grasp_handle
+    else:
+        grasp_type = grasp_other
     target_gpose = poses[target_idx]
     target_hand = assets(mesh=load_mano())
     target_hand.mesh.paint_uniform_color([150 / 255, 195 / 255, 125 / 255])
@@ -102,7 +106,7 @@ if __name__ == "__main__":
             vis.update_renderer()
 
         # ======================== wrist joint transformation ============================= #
-        if keyboard.is_pressed('enter'):
+        if keyboard.is_pressed('space'):
             euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
             flexion_degree += -euler_joint[0]
             rotation_degree += -euler_joint[2]
@@ -111,12 +115,18 @@ if __name__ == "__main__":
             hand_tf(0xA1, 0x02)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
-        elif keyboard.is_pressed('q'):
+        elif keyboard.is_pressed('backspace'):
             wrist_tf(0, 0)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
+        elif keyboard.is_pressed('enter'):
+            grasp_type()
+        elif keyboard.is_pressed('esc'):
+            break
         
         print(flexion_degree, rotation_degree)
+
+    canDLL.VCI_CloseDevice(VCI_USBCAN2, 0) 
 
 
 

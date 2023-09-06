@@ -1,5 +1,5 @@
 from ctypes import *
-import time
+import time, keyboard
  
 VCI_USBCAN2 = 4
 STATUS_OK = 1
@@ -81,23 +81,6 @@ def wrist_tf(flexion_degree=0, rotation_degree=0):
  
     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
 
-def hand_tf(name, action):
-    config_list = [0xAA, 0x55, 0x4D, name, action]
-    check_bit = sum(config_list) & 0xff
-    c = (0xAA, 0x55, 0x4D, name, action, check_bit)
-    d = ubyte_3array(0, 0, 0)
-    vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 6, c, d)
- 
-    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1) 
-
-def finger():
-    c = (0xAA, 0x55, 0x06, 0x66, 0x03, 0xff, 0x01, 0x88)
-    d = ubyte_3array(0, 0, 0)
-    vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
- 
-    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1) 
-
-
 def read_wrist():
     ret = canDLL.VCI_Receive(VCI_USBCAN2, 0, 0, byref(rx_vci_can_obj.ADDR), 2500, 0) 
     while True:#如果没有接收到数据，一直循环查询接收。
@@ -113,52 +96,59 @@ def read_wrist():
     return flexion_degree, rotation_degree
 
 
+def hand_tf(name, action):
+    config_list = [0xAA, 0x55, 0x4D, name, action]
+    check_bit = sum(config_list) & 0xff
+    c = (0xAA, 0x55, 0x4D, name, action, check_bit)
+    d = ubyte_3array(0, 0, 0)
+    vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 6, c, d)
+    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1) 
+
+def grasp_handle():
+    """
+    Grasp type only or mug handle
+    """
+    c = (0xAA, 0x55, 0x06, 0x66, 0x03, 0xff, 0x03, 0x88)
+    d = ubyte_3array(0, 0, 0)
+    vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
+    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+    time.sleep(1.5)
+    c = (0xAA, 0x55, 0x04, 0x66, 0x03, 0xff, 0x01, 0x88)
+    d = ubyte_3array(0, 0, 0)
+    vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
+    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+    time.sleep(1.5)
+    hand_tf(0xA1, 0x01)
+
+def grasp_other():
+    """
+    General grasp shape
+    """
+    c = (0xAA, 0x55, 0x06, 0x00, 0x06, 0x00, 0x03, 0x00)
+    d = ubyte_3array(0, 0, 0)
+    vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
+    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+    time.sleep(1.5)
+    hand_tf(0xA1, 0x01)
 
 if __name__ == "__main__":
-    # 发送数据
-    # 腕部指令
-    # ubyte_array = c_ubyte*8
-    # flexion_degree = 0
-    # rotation_degree = 0
-    # wrist_rotation = rotation_degree if rotation_degree >= 0 else -rotation_degree + 128
-    # wrist_flexion = flexion_degree if flexion_degree >= 0 else -flexion_degree + 128
-    # a = ubyte_array(2, 0, wrist_flexion, wrist_rotation, 0, 0, 0, 0)
-    # ubyte_3array = c_ubyte*3
-    # b = ubyte_3array(0, 0, 0)
-    # vci_can_obj = VCI_CAN_OBJ(0x13141314, 0, 0, 1, 0, 1,  8, a, b)#单次发送，0x14为手腕id
-    # ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+    flexion_degree, rotation_degree = 0, 0
+    grasp_type = grasp_other
+    while True:
+        if keyboard.is_pressed('space'):
+            wrist_tf(30, 45)
+            flexion_degree, rotation_degree = read_wrist()
+        elif keyboard.is_pressed('backspace'):
+            wrist_tf(0, 0)
+            time.sleep(1.5)
+            flexion_degree, rotation_degree = read_wrist()
+        elif keyboard.is_pressed('enter'):
+            grasp_type()
+        elif keyboard.is_pressed('esc'):
+            break
+        
+        print(flexion_degree, rotation_degree)
 
-    # 手指指令
-    # c = ubyte_array(0xAA, 0x55, 0x4D, 0xA1, 0x02, 0xEF)
-    # d = ubyte_3array(0, 0 , 0)
-    # vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 6, c, d)#单次发送，0x14为手腕id
-    # ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1) 
-
-    # 用函数来写
-    wrist_tf(flexion_degree=0, rotation_degree=0)
-    # hand_tf(0xA1, 0x01)
-    finger()
-
-
-    time.sleep(1.5)
-    # ==================================接收编码器 ============================ #
-    # ret = canDLL.VCI_Receive(VCI_USBCAN2, 0, 0, byref(rx_vci_can_obj.ADDR), 2500, 0) 
-    # while True:#如果没有接收到数据，一直循环查询接收。
-    #     ret = canDLL.VCI_Receive(VCI_USBCAN2, 0, 0, byref(rx_vci_can_obj.ADDR), 2500, 0)
-    #     if (ret > 0) & (rx_vci_can_obj.ADDR.ID == 0x12345700):
-    #         joint_data = list(rx_vci_can_obj.ADDR.Data)
-    #         wrist_flexion = joint_data[0]
-    #         wrist_rotation = joint_data[1]
-    #         rotation_degree = wrist_rotation if wrist_rotation <= 128 else -wrist_rotation + 128
-    #         flexion_degree = wrist_flexion if wrist_flexion <= 128 else -wrist_flexion + 128
-    #         print(flexion_degree, rotation_degree)
-    #         break
-    
-    # 用函数写
-    flexion_degree, rotation_degree = read_wrist()
-    print(flexion_degree, rotation_degree)
-
-    #关闭
     canDLL.VCI_CloseDevice(VCI_USBCAN2, 0) 
 
     
