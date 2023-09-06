@@ -1,6 +1,7 @@
 __pycache__
 can/*
 !can/hand_control.py
+!can/keyboard_test.py
 !can/ControlCAN.dll
 models/
 mocap/
