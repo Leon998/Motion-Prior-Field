@@ -1,5 +1,7 @@
 __pycache__
-can/
+can/*
+!can/hand_control.py
+!can/ControlCAN.dll
 models/
 mocap/
 obj_coordinate/

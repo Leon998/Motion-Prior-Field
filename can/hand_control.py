@@ -1,0 +1,165 @@
+from ctypes import *
+import time
+ 
+VCI_USBCAN2 = 4
+STATUS_OK = 1
+class VCI_INIT_CONFIG(Structure):  
+    _fields_ = [("AccCode", c_uint),
+                ("AccMask", c_uint),
+                ("Reserved", c_uint),
+                ("Filter", c_ubyte),
+                ("Timing0", c_ubyte),
+                ("Timing1", c_ubyte),
+                ("Mode", c_ubyte)
+                ]  
+class VCI_CAN_OBJ(Structure):  
+    _fields_ = [("ID", c_uint),
+                ("TimeStamp", c_uint),
+                ("TimeFlag", c_ubyte),
+                ("SendType", c_ubyte),
+                ("RemoteFlag", c_ubyte),
+                ("ExternFlag", c_ubyte),
+                ("DataLen", c_ubyte),
+                ("Data", c_ubyte*8),
+                ("Reserved", c_ubyte*3)
+                ] 
+ 
+CanDLLName = 'can/ControlCAN.dll' #把DLL放到对应的目录下
+canDLL = windll.LoadLibrary(CanDLLName)
+
+ 
+ret = canDLL.VCI_OpenDevice(VCI_USBCAN2, 0, 0)
+ 
+#初始0通道
+vci_initconfig = VCI_INIT_CONFIG(0x80000008, 0xFFFFFFFF, 0,
+                                 0, 0x00, 0x1C, 0)#波特率500k，正常模式
+ret = canDLL.VCI_InitCAN(VCI_USBCAN2, 0, 0, byref(vci_initconfig))
+ 
+ret = canDLL.VCI_StartCAN(VCI_USBCAN2, 0, 0)
+ 
+#初始1通道
+ret = canDLL.VCI_InitCAN(VCI_USBCAN2, 0, 1, byref(vci_initconfig))
+ 
+ret = canDLL.VCI_StartCAN(VCI_USBCAN2, 0, 1)
+
+ubyte_array = c_ubyte*8
+ubyte_3array = c_ubyte*3
+
+# 接收数据
+# 结构体数组类
+import ctypes
+class VCI_CAN_OBJ_ARRAY(Structure):
+    _fields_ = [('SIZE', ctypes.c_uint16), ('STRUCT_ARRAY', ctypes.POINTER(VCI_CAN_OBJ))]
+    def __init__(self,num_of_structs):
+                                                             #这个括号不能少
+        self.STRUCT_ARRAY = ctypes.cast((VCI_CAN_OBJ * num_of_structs)(),ctypes.POINTER(VCI_CAN_OBJ))#结构体数组
+        self.SIZE = num_of_structs#结构体长度
+        self.ADDR = self.STRUCT_ARRAY[0]#结构体数组地址  byref()转c地址
+
+rx_vci_can_obj = VCI_CAN_OBJ_ARRAY(2500)#结构体数组
+
+
+def wrist_limit(flexion_degree, rotation_degree):
+    if flexion_degree < -45:
+        flexion_degree = -45
+    elif flexion_degree > 45:
+        flexion_degree = 45
+    if rotation_degree < -90:
+        rotation_degree = -90
+    elif rotation_degree > 90:
+        rotation_degree = 90
+
+    return int(flexion_degree), int(rotation_degree)
+    
+
+def wrist_tf(flexion_degree=0, rotation_degree=0):
+    wrist_rotation = rotation_degree if rotation_degree >= 0 else -rotation_degree + 128
+    wrist_flexion = flexion_degree if flexion_degree >= 0 else -flexion_degree + 128
+    a = ubyte_array(2, 0, wrist_flexion, wrist_rotation)
+    b = ubyte_3array(0, 0, 0)
+    vci_can_obj = VCI_CAN_OBJ(0x13141314, 0, 0, 1, 0, 1, 4, a, b)
+ 
+    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+
+def hand_tf(name, action):
+    config_list = [0xAA, 0x55, 0x4D, name, action]
+    check_bit = sum(config_list) & 0xff
+    c = (0xAA, 0x55, 0x4D, name, action, check_bit)
+    d = ubyte_3array(0, 0, 0)
+    vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 6, c, d)
+ 
+    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1) 
+
+def finger():
+    c = (0xAA, 0x55, 0x06, 0x66, 0x03, 0xff, 0x01, 0x88)
+    d = ubyte_3array(0, 0, 0)
+    vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
+ 
+    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1) 
+
+
+def read_wrist():
+    ret = canDLL.VCI_Receive(VCI_USBCAN2, 0, 0, byref(rx_vci_can_obj.ADDR), 2500, 0) 
+    while True:#如果没有接收到数据，一直循环查询接收。
+        ret = canDLL.VCI_Receive(VCI_USBCAN2, 0, 0, byref(rx_vci_can_obj.ADDR), 2500, 0)
+        if (ret > 0) & (rx_vci_can_obj.ADDR.ID == 0x12345700):
+            joint_data = list(rx_vci_can_obj.ADDR.Data)
+            wrist_flexion = joint_data[0]
+            wrist_rotation = joint_data[1]
+            rotation_degree = wrist_rotation if wrist_rotation <= 128 else -wrist_rotation + 128
+            flexion_degree = wrist_flexion if wrist_flexion <= 128 else -wrist_flexion + 128
+            # print(flexion_degree, rotation_degree)
+            break
+    return flexion_degree, rotation_degree
+
+
+
+if __name__ == "__main__":
+    # 发送数据
+    # 腕部指令
+    # ubyte_array = c_ubyte*8
+    # flexion_degree = 0
+    # rotation_degree = 0
+    # wrist_rotation = rotation_degree if rotation_degree >= 0 else -rotation_degree + 128
+    # wrist_flexion = flexion_degree if flexion_degree >= 0 else -flexion_degree + 128
+    # a = ubyte_array(2, 0, wrist_flexion, wrist_rotation, 0, 0, 0, 0)
+    # ubyte_3array = c_ubyte*3
+    # b = ubyte_3array(0, 0, 0)
+    # vci_can_obj = VCI_CAN_OBJ(0x13141314, 0, 0, 1, 0, 1,  8, a, b)#单次发送，0x14为手腕id
+    # ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+
+    # 手指指令
+    # c = ubyte_array(0xAA, 0x55, 0x4D, 0xA1, 0x02, 0xEF)
+    # d = ubyte_3array(0, 0 , 0)
+    # vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 6, c, d)#单次发送，0x14为手腕id
+    # ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1) 
+
+    # 用函数来写
+    wrist_tf(flexion_degree=0, rotation_degree=0)
+    # hand_tf(0xA1, 0x01)
+    finger()
+
+
+    time.sleep(1.5)
+    # ==================================接收编码器 ============================ #
+    # ret = canDLL.VCI_Receive(VCI_USBCAN2, 0, 0, byref(rx_vci_can_obj.ADDR), 2500, 0) 
+    # while True:#如果没有接收到数据，一直循环查询接收。
+    #     ret = canDLL.VCI_Receive(VCI_USBCAN2, 0, 0, byref(rx_vci_can_obj.ADDR), 2500, 0)
+    #     if (ret > 0) & (rx_vci_can_obj.ADDR.ID == 0x12345700):
+    #         joint_data = list(rx_vci_can_obj.ADDR.Data)
+    #         wrist_flexion = joint_data[0]
+    #         wrist_rotation = joint_data[1]
+    #         rotation_degree = wrist_rotation if wrist_rotation <= 128 else -wrist_rotation + 128
+    #         flexion_degree = wrist_flexion if wrist_flexion <= 128 else -wrist_flexion + 128
+    #         print(flexion_degree, rotation_degree)
+    #         break
+    
+    # 用函数写
+    flexion_degree, rotation_degree = read_wrist()
+    print(flexion_degree, rotation_degree)
+
+    #关闭
+    canDLL.VCI_CloseDevice(VCI_USBCAN2, 0) 
+
+    
+

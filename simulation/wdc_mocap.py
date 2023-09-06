@@ -11,7 +11,7 @@ import torch
 import redis
 from can.hand_control import *
 import keyboard, time
-import math
+import math, random
 
 
 if __name__ == "__main__":  
@@ -36,9 +36,16 @@ if __name__ == "__main__":
     vis.add_geometry(object.mesh)
 
     hand = assets(mesh=load_mano())
-    pred_hand = assets(mesh=load_mano())
-    pred_hand.mesh.paint_uniform_color([150 / 255, 195 / 255, 125 / 255])
     vis.add_geometry(hand.mesh)
+
+    target_idx = random.randint(0,len(poses))
+    target_gpose = poses[target_idx]
+    target_hand = assets(mesh=load_mano())
+    target_hand.mesh.paint_uniform_color([150 / 255, 195 / 255, 125 / 255])
+    vis.add_geometry(target_hand.mesh)
+
+    pred_hand = assets(mesh=load_mano())
+    pred_hand.mesh.paint_uniform_color([250 / 255, 127 / 255, 111 / 255])
     vis.add_geometry(pred_hand.mesh)
 
     # 初始化手腕位置
@@ -50,7 +57,8 @@ if __name__ == "__main__":
  
     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
 
-    flexion_degree, rotation_degree = read_wrist()
+    # flexion_degree, rotation_degree = read_wrist()
+    flexion_degree, rotation_degree = 0, 0
 
     while True:
         # hand
@@ -64,6 +72,7 @@ if __name__ == "__main__":
 
         q_oh, t_oh, tf_oh = coordinate_transform(q_wh, t_wh, q_wo, t_wo)
         hand_pose = np.concatenate((q_oh, t_oh), axis=0)
+        target_gpose_wdc = gpose2wdc(target_gpose, q_wo, t_wo)
         
         # ======================== grasp pose prediction ============================= #
         x = torch.from_numpy(hand_pose).type(torch.FloatTensor).to(device)
@@ -74,10 +83,12 @@ if __name__ == "__main__":
 
         # ========================= update transform ==================== #
         hand.update_transform(hand_pose_wdc)
+        target_hand.update_transform(target_gpose_wdc)
         pred_hand.update_transform(pred_gpose_wdc)
         object.update_transform(object_pose_wdc)
 
         vis.update_geometry(hand.mesh)
+        vis.update_geometry(target_hand.mesh)
         vis.update_geometry(pred_hand.mesh)
         vis.update_geometry(object.mesh)
 
