@@ -57,6 +57,9 @@ if __name__ == "__main__":
 
     flexion_degree, rotation_degree = read_wrist()
 
+    log_hand = np.zeros((1, 7))
+    record = False
+
     while True:
         # hand
         t_wh = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
@@ -98,7 +101,12 @@ if __name__ == "__main__":
             vis.poll_events()
             vis.update_renderer()
 
-        # ======================== wrist joint transformation ============================= #
+        # ======================== keyboard control ============================= #
+        if keyboard.is_pressed('space'):
+            record = True
+        if record:
+            log_hand = np.concatenate((log_hand, hand_pose.reshape(1,7)), axis=0)
+            
         if keyboard.is_pressed('ctrl'):
             euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
             flexion_degree += euler_joint[0]
@@ -113,6 +121,8 @@ if __name__ == "__main__":
             flexion_degree, rotation_degree = read_wrist()
         elif keyboard.is_pressed('enter'):
             grasp_type()
+            np.savetxt('simulation/log_hand.txt', log_hand)
+            record = False
         elif keyboard.is_pressed('esc'):
             break
         
