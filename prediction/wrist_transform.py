@@ -12,11 +12,11 @@ import keyboard
 
 if __name__ == "__main__":
     object_cls = objects['mug']
-    path = 'mocap/' + object_cls.name + '/'
+    path = 'mocap/shixu/' + object_cls.name + '/'
     # Source files
     source_files = os.listdir(path)
     source_files.sort()
-    idx = 155  # 随便选的一个抓取的序号
+    idx = 15  # 随便选的一个抓取的序号
     file = source_files[idx]
     # Coordinate
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.15, origin=[0, 0, 0])
@@ -88,13 +88,13 @@ if __name__ == "__main__":
     # #关闭
     # canDLL.VCI_CloseDevice(VCI_USBCAN2, 0)
 
-    while True:
-        if keyboard.is_pressed('enter'):
-            print("go")
-            ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
-            #关闭
-            canDLL.VCI_CloseDevice(VCI_USBCAN2, 0)
-            break
+    # while True:
+    #     if keyboard.is_pressed('enter'):
+    #         print("go")
+    #         ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+    #         #关闭
+    #         canDLL.VCI_CloseDevice(VCI_USBCAN2, 0)
+    #         break
 
 
     

@@ -39,7 +39,7 @@ if __name__ == "__main__":
     vis.add_geometry(hand.mesh)
 
     target_idx = random.randint(0,len(poses))
-    if object_cls == mug & target_idx < 60:
+    if object_cls == mug and target_idx < 60:
         grasp_type = grasp_handle
     else:
         grasp_type = grasp_other
@@ -53,16 +53,9 @@ if __name__ == "__main__":
     vis.add_geometry(pred_hand.mesh)
 
     # 初始化手腕位置
-    ubyte_array = c_ubyte*8
-    a = ubyte_array(0, 128, 128, 0, 0, 0, 0, 0)
-    ubyte_3array = c_ubyte*3
-    b = ubyte_3array(0, 0 , 0)
-    vci_can_obj = VCI_CAN_OBJ(0x14, 0, 0, 1, 0, 0,  8, a, b)#单次发送，0x14为手腕id
- 
-    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+    wrist_tf(0, -45)
 
-    # flexion_degree, rotation_degree = read_wrist()
-    flexion_degree, rotation_degree = 0, 0
+    flexion_degree, rotation_degree = read_wrist()
 
     while True:
         # hand
@@ -108,15 +101,14 @@ if __name__ == "__main__":
         # ======================== wrist joint transformation ============================= #
         if keyboard.is_pressed('ctrl'):
             euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
-            flexion_degree += -euler_joint[0]
+            flexion_degree += euler_joint[0]
             rotation_degree += -euler_joint[2]
             flexion_degree, rotation_degree = wrist_limit(flexion_degree, rotation_degree)
             wrist_tf(flexion_degree, rotation_degree)
-            hand_tf(0xA1, 0x02)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
         elif keyboard.is_pressed('backspace'):
-            wrist_tf(0, 0)
+            wrist_tf(0, -45)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
         elif keyboard.is_pressed('enter'):

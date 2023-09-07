@@ -60,14 +60,14 @@ rx_vci_can_obj = VCI_CAN_OBJ_ARRAY(2500)#结构体数组
 
 
 def wrist_limit(flexion_degree, rotation_degree):
-    if flexion_degree < -45:
-        flexion_degree = -45
-    elif flexion_degree > 45:
-        flexion_degree = 45
-    if rotation_degree < -90:
-        rotation_degree = -90
-    elif rotation_degree > 90:
-        rotation_degree = 90
+    if flexion_degree < -30:
+        flexion_degree = -30
+    elif flexion_degree > 30:
+        flexion_degree = 30
+    if rotation_degree < -45:
+        rotation_degree = -45
+    elif rotation_degree > 45:
+        rotation_degree = 45
 
     return int(flexion_degree), int(rotation_degree)
     
@@ -136,7 +136,8 @@ if __name__ == "__main__":
     grasp_type = grasp_other
     while True:
         if keyboard.is_pressed('ctrl'):
-            wrist_tf(30, 45)
+            wrist_tf(0, -45)
+            time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
         elif keyboard.is_pressed('backspace'):
             wrist_tf(0, 0)
