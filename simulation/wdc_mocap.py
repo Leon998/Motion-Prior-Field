@@ -6,6 +6,7 @@ from myutils.hand_config import load_mano
 from myutils.object_config import objects
 from myutils.assets_config import assets
 from myutils.utils import *
+from myutils.add_gauss_noise import add_gaussian_noise, noise_hand
 import open3d as o3d
 import torch
 import redis
@@ -54,9 +55,8 @@ if __name__ == "__main__":
 
     # 初始化手腕位置
     wrist_tf(0, -45)
-
     flexion_degree, rotation_degree = read_wrist()
-
+    # Recording
     log_hand = np.zeros((1, 7))
     record = False
 
@@ -65,6 +65,7 @@ if __name__ == "__main__":
         t_wh = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
         q_wh = np.array([float(i) for i in r.get('hand_rotation')[1:-1].split(',')])
         hand_pose_wdc = np.concatenate((q_wh, t_wh), axis=0)
+        hand_pose_wdc = noise_hand(hand_pose=hand_pose_wdc)
         # object
         t_wo = np.array([float(i) for i in r.get('object_position')[1:-1].split(',')])
         q_wo = np.array([float(i) for i in r.get('object_rotation')[1:-1].split(',')])
@@ -81,7 +82,7 @@ if __name__ == "__main__":
         pred_gpose = poses[idx]
         pred_gpose_wdc = gpose2wdc(pred_gpose, q_wo, t_wo)
 
-        # ========================= update transform ==================== #
+        # ============================== update transform ============================= #
         hand.update_transform(hand_pose_wdc)
         target_hand.update_transform(target_gpose_wdc)
         pred_hand.update_transform(pred_gpose_wdc)
@@ -101,9 +102,11 @@ if __name__ == "__main__":
             vis.poll_events()
             vis.update_renderer()
 
-        # ======================== keyboard control ============================= #
+        # ============================== keyboard control ============================= #
         if keyboard.is_pressed('space'):
+            print("Rcording")
             record = True
+            t_start = time.time()
         if record:
             log_hand = np.concatenate((log_hand, hand_pose.reshape(1,7)), axis=0)
             
@@ -115,18 +118,23 @@ if __name__ == "__main__":
             wrist_tf(flexion_degree, rotation_degree)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
+            print(flexion_degree, rotation_degree)
         elif keyboard.is_pressed('backspace'):
             wrist_tf(0, -45)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
+            print(flexion_degree, rotation_degree)
         elif keyboard.is_pressed('enter'):
+            print("Grasping!")
             grasp_type()
-            np.savetxt('simulation/log_hand.txt', log_hand)
+            t_end = time.time()
+            np.savetxt('simulation/log_hand.txt', log_hand[1:])
+            with open('simulation/time.txt', 'w') as f:
+                f.write(str(t_end - t_start))
             record = False
         elif keyboard.is_pressed('esc'):
             break
         
-        print(flexion_degree, rotation_degree)
 
     canDLL.VCI_CloseDevice(VCI_USBCAN2, 0) 
 

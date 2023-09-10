@@ -136,6 +136,8 @@ if __name__ == "__main__":
     grasp_type = grasp_other
     while True:
         if keyboard.is_pressed('ctrl'):
+            wrist_tf(0, 45)
+            time.sleep(1.5)
             wrist_tf(0, -45)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()

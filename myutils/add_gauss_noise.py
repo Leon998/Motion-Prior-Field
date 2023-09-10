@@ -13,6 +13,12 @@ def add_gaussian_noise(input, mean=0, std=0.2):
     noisy_input = input + noise
     return noisy_input
 
+def noise_hand(hand_pose, std_q=0.05, std_t=0.015):
+    noisy_q = add_gaussian_noise(hand_pose[:4], 0, std_q)
+    noisy_t = add_gaussian_noise(hand_pose[4:], 0, std_t)
+    noisy_hand_pose = np.concatenate((noisy_q, noisy_t))
+    return noisy_hand_pose
+
 
 def add_pose_noise(cutted_TF_oh, std_q=0.08, std_t=0.008, sample=3):
     tmp = np.zeros((1, 7))
