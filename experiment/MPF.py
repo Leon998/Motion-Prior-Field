@@ -15,7 +15,16 @@ import keyboard, time
 import math, random
 
 
-if __name__ == "__main__":  
+if __name__ == "__main__":
+    # ======================= experiment initialization ================================== #
+    # Subject name
+    subject = 'ShiXu'
+    save_path = 'experiment/data/' + subject + '/'
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+    trial_idx = 1
+    # Comparing
+    TRO = False
     # pool = redis.ConnectionPool(host='localhost', port=6379, decode_responses=True)
     r = redis.Redis(host='localhost', port=6379, decode_responses=True)  
     # ====================== gpose prediction module initialization ======================== #
@@ -57,7 +66,7 @@ if __name__ == "__main__":
     wrist_tf(0, -45)
     flexion_degree, rotation_degree = read_wrist()
     # Recording
-    log_hand = np.zeros((1, 7))
+    log_hand = np.array(target_gpose).reshape(1,7)
     record = False
 
     while True:
@@ -65,7 +74,7 @@ if __name__ == "__main__":
         t_wh = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
         q_wh = np.array([float(i) for i in r.get('hand_rotation')[1:-1].split(',')])
         hand_pose_wdc = np.concatenate((q_wh, t_wh), axis=0)
-        hand_pose_wdc = noise_hand(hand_pose=hand_pose_wdc)
+        hand_pose_wdc = noise_hand(hand_pose=hand_pose_wdc,std_q=0.02,std_t=0.02)
         # object
         t_wo = np.array([float(i) for i in r.get('object_position')[1:-1].split(',')])
         q_wo = np.array([float(i) for i in r.get('object_rotation')[1:-1].split(',')])
@@ -80,6 +89,8 @@ if __name__ == "__main__":
         pred = model(x)
         idx = pred.argmax(0).item()
         pred_gpose = poses[idx]
+        if TRO:
+            pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.025,std_t=0.01)
         pred_gpose_wdc = gpose2wdc(pred_gpose, q_wo, t_wo)
 
         # ============================== update transform ============================= #
@@ -128,7 +139,7 @@ if __name__ == "__main__":
             print("Grasping!")
             grasp_type()
             t_end = time.time()
-            np.savetxt('simulation/log_hand.txt', log_hand[1:])
+            np.savetxt('simulation/log_hand.txt', log_hand)
             with open('simulation/time.txt', 'w') as f:
                 f.write(str(t_end - t_start))
             record = False

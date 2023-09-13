@@ -3,6 +3,9 @@ can/*
 !can/hand_control.py
 !can/keyboard_test.py
 !can/ControlCAN.dll
+
+experiment/data
+
 models/
 mocap/
 obj_coordinate/
