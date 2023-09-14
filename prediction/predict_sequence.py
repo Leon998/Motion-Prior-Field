@@ -45,7 +45,7 @@ vis.add_geometry(pred_hand.mesh)
 
 if __name__ == "__main__":    
     # dataset_eval()
-    file_path = 'experiment/data/ShiXu/mug_3_log_hand.txt'
+    file_path = 'experiment/data/ShiXu/mug_log_hand_1.txt'
     log_hand = np.loadtxt(file_path)
     target_gpose = np.array(log_hand[0])  # 目标姿态记录在第一行
     TF_oh = log_hand[1:]  # 过程姿态从第二行开始记录

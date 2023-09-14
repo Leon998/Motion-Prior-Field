@@ -106,7 +106,7 @@ def hand_tf(name, action):
 
 def grasp_handle():
     """
-    Grasp type only or mug handle
+    Grasp type only for mug handle
     """
     c = (0xAA, 0x55, 0x06, 0x66, 0x03, 0xff, 0x03, 0x88)
     d = ubyte_3array(0, 0, 0)

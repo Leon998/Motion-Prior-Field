@@ -32,6 +32,7 @@ if __name__ == "__main__":
     save_path = 'experiment/data/' + subject + '/'
     if not os.path.exists(save_path):
         os.mkdir(save_path)
+    trial_num = 3
     # Comparing
     TRO = False
     # pool = redis.ConnectionPool(host='localhost', port=6379, decode_responses=True)
@@ -57,7 +58,7 @@ if __name__ == "__main__":
     hand = assets(mesh=load_mano())
     vis.add_geometry(hand.mesh)
 
-    targets = random.sample(range(1, len(poses)), 3)  # 目标列表，一轮3个trial
+    targets = random.sample(range(1, len(poses)), trial_num)  # 目标列表，一轮trial_num个trial
     target_hand = assets(mesh=load_mano())
     target_hand.mesh.paint_uniform_color([150 / 255, 195 / 255, 125 / 255])
     vis.add_geometry(target_hand.mesh)
@@ -155,13 +156,13 @@ if __name__ == "__main__":
             # print(flexion_degree, rotation_degree)
         elif keyboard.is_pressed('enter'):
             print("Grasping!")
-            grasp_type()
             t_end = time.time()
             print("Trial %d end recording" % trial)
             print("time:", t_end - t_start)
-            np.savetxt(prefix + str(trial) + '_log_hand.txt', log_hand)
-            with open(prefix + str(trial) + '_time.txt', 'w') as f:
-                f.write(str(t_end - t_start))
+            np.savetxt(prefix + '_log_hand_' + str(trial) + '.txt', log_hand)
+            with open(prefix + '_time_' + str(trial) + '.txt', 'w') as f:
+                f.write(str(t_end - t_start + 1))  # 假设抓取耗时1秒
+            grasp_type()
             record = False
             saved_num += 1
         elif keyboard.is_pressed('shift'):
