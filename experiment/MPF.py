@@ -69,6 +69,9 @@ if __name__ == "__main__":
     log_hand = np.array(target_gpose).reshape(1,7)
     record = False
 
+    prefix = 'experiment/data/' + object_cls.name + str(trial_idx)
+    if TRO:
+        prefix = prefix + '_TRO_'
     while True:
         # hand
         t_wh = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
@@ -91,6 +94,8 @@ if __name__ == "__main__":
         pred_gpose = poses[idx]
         if TRO:
             pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.025,std_t=0.01)
+        else:
+            pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.01,std_t=0.005)
         pred_gpose_wdc = gpose2wdc(pred_gpose, q_wo, t_wo)
 
         # ============================== update transform ============================= #
@@ -139,11 +144,12 @@ if __name__ == "__main__":
             print("Grasping!")
             grasp_type()
             t_end = time.time()
-            np.savetxt('simulation/log_hand.txt', log_hand)
-            with open('simulation/time.txt', 'w') as f:
+            np.savetxt(prefix + '_log_hand.txt', log_hand)
+            with open(prefix + '_time.txt', 'w') as f:
                 f.write(str(t_end - t_start))
             record = False
         elif keyboard.is_pressed('esc'):
+            vis.destroy_window()
             break
         
 
