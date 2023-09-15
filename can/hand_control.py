@@ -128,7 +128,7 @@ def grasp_other():
     d = ubyte_3array(0, 0, 0)
     vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
-    time.sleep(1.5)
+    time.sleep(3)
     hand_tf(0xA1, 0x01)
 
 if __name__ == "__main__":

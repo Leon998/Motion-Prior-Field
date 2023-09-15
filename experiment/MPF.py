@@ -27,6 +27,8 @@ def target_grasp_init(object_cls, poses, target_idx):
 
 if __name__ == "__main__":
     # ======================= experiment initialization ================================== #
+    # Object name
+    object_cls = objects['mug']
     # Subject name
     subject = 'ShiXu'
     save_path = 'experiment/data/' + subject + '/'
@@ -38,7 +40,6 @@ if __name__ == "__main__":
     # pool = redis.ConnectionPool(host='localhost', port=6379, decode_responses=True)
     r = redis.Redis(host='localhost', port=6379, decode_responses=True)  
     # ====================== gpose prediction module initialization ======================== #
-    object_cls = objects['mug']
     poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
     model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/uncluster_noisy.pkl')
     model.eval()
@@ -49,7 +50,7 @@ if __name__ == "__main__":
 
     # Visualize
     vis = o3d.visualization.Visualizer()
-    vis.create_window(window_name='vis', width=1080, height=720)
+    vis.create_window(window_name='vis')
     vis.add_geometry(coordinate)
 
     object = assets(mesh=object_cls.init_transform())
@@ -80,7 +81,7 @@ if __name__ == "__main__":
     trial = 1
     saved_num = 0
     
-    while True:
+    while saved_num < trial_num:
         # hand
         t_wh = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
         q_wh = np.array([float(i) for i in r.get('hand_rotation')[1:-1].split(',')])
@@ -106,7 +107,7 @@ if __name__ == "__main__":
         if TRO:
             pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.025,std_t=0.01)
         else:
-            pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.005,std_t=0.005)
+            pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.002,std_t=0.001)
         pred_gpose_wdc = gpose2wdc(pred_gpose, q_wo, t_wo)
 
         # ============================== update transform ============================= #
@@ -156,14 +157,15 @@ if __name__ == "__main__":
             # print(flexion_degree, rotation_degree)
         elif keyboard.is_pressed('enter'):
             print("Grasping!")
+            grasp_type()
             t_end = time.time()
             print("Trial %d end recording" % trial)
-            print("time:", t_end - t_start)
-            np.savetxt(prefix + '_log_hand_' + str(trial) + '.txt', log_hand)
-            with open(prefix + '_time_' + str(trial) + '.txt', 'w') as f:
-                f.write(str(t_end - t_start + 1))  # 假设抓取耗时1秒
-            grasp_type()
+            duration = t_end - t_start -3
+            print("time:", duration)
             record = False
+            np.savetxt(prefix + 'log_hand_' + str(trial) + '.txt', log_hand)
+            with open(prefix + 'time_' + str(trial) + '.txt', 'w') as f:
+                f.write(str(duration))  # 假设抓取耗时3秒
             saved_num += 1
         elif keyboard.is_pressed('shift'):
             trial = saved_num + 1
@@ -175,7 +177,7 @@ if __name__ == "__main__":
             vis.destroy_window()
             break
         
-
+    wrist_tf(0, -45)
     canDLL.VCI_CloseDevice(VCI_USBCAN2, 0) 
 
 
