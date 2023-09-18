@@ -18,6 +18,8 @@ import math, random
 def target_grasp_init(object_cls, poses, target_idx):
     if object_cls == mug and target_idx < 60:
         grasp_type = grasp_handle
+    elif object_cls == mug and target_idx >= 120:
+        grasp_type = grasp_mug_top
     else:
         grasp_type = grasp_other
     target_gpose = poses[target_idx]
@@ -86,7 +88,7 @@ if __name__ == "__main__":
         t_wh = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
         q_wh = np.array([float(i) for i in r.get('hand_rotation')[1:-1].split(',')])
         hand_pose_wdc = np.concatenate((q_wh, t_wh), axis=0)
-        hand_pose_wdc = noise_hand(hand_pose=hand_pose_wdc,std_q=0.02,std_t=0.02)
+        hand_pose_wdc = noise_hand(hand_pose=hand_pose_wdc,std_q=0.01,std_t=0.01)
         # object
         t_wo = np.array([float(i) for i in r.get('object_position')[1:-1].split(',')])
         q_wo = np.array([float(i) for i in r.get('object_rotation')[1:-1].split(',')])
@@ -94,6 +96,7 @@ if __name__ == "__main__":
 
         q_oh, t_oh, tf_oh = coordinate_transform(q_wh, t_wh, q_wo, t_wo)
         hand_pose = np.concatenate((q_oh, t_oh), axis=0)
+        # hand_pose = noise_hand(hand_pose=hand_pose,std_q=0.01,std_t=0.01)  # 做实验记录的时候不用加噪声
 
         target_idx = targets[trial-1]  # 提取目标手势的索引
         grasp_type, target_gpose = target_grasp_init(object_cls, poses, target_idx)
@@ -105,9 +108,9 @@ if __name__ == "__main__":
         idx = pred.argmax(0).item()
         pred_gpose = poses[idx]
         if TRO:
-            pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.025,std_t=0.01)
+            pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.02,std_t=0.001)
         else:
-            pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.002,std_t=0.001)
+            pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.001,std_t=0)
         pred_gpose_wdc = gpose2wdc(pred_gpose, q_wo, t_wo)
 
         # ============================== update transform ============================= #
@@ -147,26 +150,27 @@ if __name__ == "__main__":
             flexion_degree, rotation_degree = wrist_limit(flexion_degree, rotation_degree)
             wrist_tf(flexion_degree, rotation_degree)
             time.sleep(1.5)
-            flexion_degree, rotation_degree = read_wrist()
+            # flexion_degree, rotation_degree = read_wrist()
             # print(flexion_degree, rotation_degree)
         elif keyboard.is_pressed('backspace'):
             print("reset pose")
             wrist_tf(0, -45)
             time.sleep(1.5)
-            flexion_degree, rotation_degree = read_wrist()
-            # print(flexion_degree, rotation_degree)
+            # flexion_degree, rotation_degree = read_wrist()
+            # # print(flexion_degree, rotation_degree)
         elif keyboard.is_pressed('enter'):
             print("Grasping!")
             grasp_type()
             t_end = time.time()
             print("Trial %d end recording" % trial)
-            duration = t_end - t_start -3
+            duration = t_end - t_start
             print("time:", duration)
             record = False
             np.savetxt(prefix + 'log_hand_' + str(trial) + '.txt', log_hand)
             with open(prefix + 'time_' + str(trial) + '.txt', 'w') as f:
-                f.write(str(duration))  # 假设抓取耗时3秒
+                f.write(str(duration))
             saved_num += 1
+            release_grasp()
         elif keyboard.is_pressed('shift'):
             trial = saved_num + 1
             print("New trial: ", trial)

@@ -1,5 +1,6 @@
 from ctypes import *
 import time, keyboard
+import numpy as np
  
 VCI_USBCAN2 = 4
 STATUS_OK = 1
@@ -117,8 +118,13 @@ def grasp_handle():
     d = ubyte_3array(0, 0, 0)
     vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
-    time.sleep(1.5)
-    hand_tf(0xA1, 0x01)
+
+def grasp_mug_top():
+    c = (0xAA, 0x55, 0x03, 0xaa, 0x06, 0x00, 0x02, 0x00)
+    d = ubyte_3array(0, 0, 0)
+    vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
+    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+    # time.sleep(1.5)
 
 def grasp_other():
     """
@@ -128,7 +134,10 @@ def grasp_other():
     d = ubyte_3array(0, 0, 0)
     vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
-    time.sleep(3)
+    # time.sleep(1.5)
+
+def release_grasp():
+    time.sleep(1.5)
     hand_tf(0xA1, 0x01)
 
 if __name__ == "__main__":
@@ -136,17 +145,18 @@ if __name__ == "__main__":
     grasp_type = grasp_other
     while True:
         if keyboard.is_pressed('ctrl'):
-            wrist_tf(0, 45)
+            wrist_tf(-30, 45)
             time.sleep(1.5)
-            wrist_tf(0, -45)
+            wrist_tf(30, -45)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
         elif keyboard.is_pressed('backspace'):
-            wrist_tf(0, 0)
+            wrist_tf(30, -45)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
         elif keyboard.is_pressed('enter'):
             grasp_type()
+            release_grasp()
         elif keyboard.is_pressed('esc'):
             break
         
