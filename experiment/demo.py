@@ -22,11 +22,11 @@ def init_pose(t=5,f=30):
     wrist_tf(f, -45)
     time.sleep(t)
 
-if __name__ == "__main__":
-    # ======= DO NOT CHANGE ========== #
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
+# ======= DO NOT CHANGE ========== #
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! #
+def grab_mug():
     time.sleep(3)
     init_pose()
     # mug handle
@@ -41,6 +41,7 @@ if __name__ == "__main__":
     grasp_mug_top()
     release_grasp_long()
 
+def grab_potted_meat_can():
     init_pose()
     # potted_meat_can top
     wrist_tf(-15, -40)
@@ -52,8 +53,8 @@ if __name__ == "__main__":
     time.sleep(1.5)
     grasp_other()
     release_grasp_long()
-    
 
+def grab_mustard_bottle():
     init_pose()
     # mustard_bottle side
     wrist_tf(0, 20)
@@ -67,4 +68,29 @@ if __name__ == "__main__":
     grasp_other()
     release_grasp_long()
     init_pose(t=2)
+
+
+if __name__ == "__main__":
+    # # single_demo
+    # grab_mug()
+    # grab_potted_meat_can()
+    # grab_mustard_bottle()
+
+    # demo for mocap recording
+    while True:
+        if keyboard.is_pressed('space'):
+            print("preparing!")
+            grab_mug()
+            init_pose()
+        if keyboard.is_pressed('esc'):
+            print("end")
+            break
+    wrist_tf(30, -45)
+    canDLL.VCI_CloseDevice(VCI_USBCAN2, 0) 
+    
+
+    
+    
+
+    
     
