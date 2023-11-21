@@ -146,17 +146,17 @@ if __name__ == "__main__":
     while True:
         if keyboard.is_pressed('ctrl'):
             wrist_tf(0, -45)
-            time.sleep(1.5)
+            time.sleep(2.5)
             wrist_tf(0, 45)
-            time.sleep(1.5)
+            time.sleep(2.5)
             flexion_degree, rotation_degree = read_wrist()
         elif keyboard.is_pressed('backspace'):
             wrist_tf(30, 45)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
         elif keyboard.is_pressed('enter'):
-            # grasp_type()
-            hand_tf(0xA1, 0x02)
+            grasp_type()
+            # hand_tf(0xA1, 0x02)
         elif keyboard.is_pressed('space'):
             # release_grasp()
             hand_tf(0xA1, 0x01)

@@ -15,7 +15,7 @@ class Emg_record():
 		self.fs = fs
 		self.dev = pytrigno.TrignoEMG(channel_range = (lowCh, highCh), samples_per_read = 27, host = host, buffered = True)
 		self.channel_num = highCh - lowCh + 1
-		self.save_path = str(subject) + '_data/'
+		self.save_path = 'emg_decoding/' + str(subject) + '_data/'
 		self.dataFileName = self.save_path + 'data'
 		self.triggerFileName = self.save_path + 'trigger'
 		self.triggers = {}
