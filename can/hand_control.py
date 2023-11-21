@@ -137,7 +137,6 @@ def grasp_other():
     # time.sleep(1.5)
 
 def release_grasp():
-    time.sleep(1.5)
     hand_tf(0xA1, 0x01)
 
 if __name__ == "__main__":

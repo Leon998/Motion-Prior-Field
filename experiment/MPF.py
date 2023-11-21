@@ -170,6 +170,7 @@ if __name__ == "__main__":
             with open(prefix + 'time_' + str(trial) + '.txt', 'w') as f:
                 f.write(str(duration))
             saved_num += 1
+            time.sleep(1.5)
             release_grasp()
         elif keyboard.is_pressed('shift'):
             trial = saved_num + 1
