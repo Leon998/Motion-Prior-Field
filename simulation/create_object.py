@@ -44,7 +44,7 @@ class object_init:
 if __name__ == "__main__":
     _ = p.connect(p.GUI)
     obj_startPos = [0, 0, 0]
-    obj_startOrientation = p.getQuaternionFromEuler([-0.5*pi, 0, 0])
+    obj_startOrientation = p.getQuaternionFromEuler([0, 0, 0])
     obj = object_init("models/025_mug/textured_simple.obj", q_init=obj_startOrientation, t_init=obj_startPos, p=p)
     # 添加资源路径
     p.setAdditionalSearchPath(pybullet_data.getDataPath())

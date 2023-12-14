@@ -47,3 +47,13 @@ def frame_rotation(q_base, t_base):
     new_t_base = r_frame.dot(t_base)
     new_q_base = R.from_matrix(new_r_base).as_quat()
     return new_q_base, new_t_base
+
+def object_rotation(q_wo):
+    """
+    物体绕自身x轴旋转90°
+    """
+    r_wo = R.from_quat(q_wo).as_matrix()
+    r_self = np.array([[1,0,0],[0,0,-1],[0,1,0]])
+    new_r_wo = r_wo.dot(r_self)
+    new_q_wo = R.from_matrix(new_r_wo).as_quat()
+    return new_q_wo

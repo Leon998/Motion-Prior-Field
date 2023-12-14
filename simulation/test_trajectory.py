@@ -26,21 +26,21 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath())
 # 设置环境重力加速度
 p.setGravity(0, 0, 0)
 
-rotate_frame = False
-if rotate_frame:
-    # 加载URDF模型，此处是加载蓝白相间的陆地
-    planeId = p.loadURDF("plane.urdf")
+rotate_frame = True
+# if rotate_frame:
+#     # 加载URDF模型，此处是加载蓝白相间的陆地
+#     planeId = p.loadURDF("plane.urdf")
 
 # 加载机器人，并设置加载的机器人的位姿
 robot_path = "simulation/wrist_hand_left_v2/urdf/wrist_hand_left_v2.urdf"
-startPos = [0, 0, 0]
+startPos = [0, 0, 1]
 startOrientation = p.getQuaternionFromEuler([0, 0, 0])
 robot_id = p.loadURDF(robot_path, startPos, startOrientation, useFixedBase=1)
 # 加载物体，并随机设置一个位姿
 object_cls = objects['mug']
 obj_path = object_cls.file_path
-obj_startPos = [0.5, -0.1, 0.1]
-obj_startOrientation = p.getQuaternionFromEuler([-0.5*pi, 0.5*pi, 0])
+obj_startPos = [0.5, 0.1, 1.1]
+obj_startOrientation = p.getQuaternionFromEuler([0, 0, 0.5*pi])
 obj = object_init(obj_path, q_init=obj_startOrientation, t_init=obj_startPos, p=p)
 obj_state = p.getBasePositionAndOrientation(obj.object_id)
 print("object state: ", obj_state)
@@ -56,28 +56,30 @@ p.setRealTimeSimulation(1)
 p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
 p.configureDebugVisualizer(p.COV_ENABLE_GUI, 1)
 p.resetDebugVisualizerCamera(cameraDistance=1.2, cameraYaw=135,
-                                 cameraPitch=-30, cameraTargetPosition=[0,0,0])
+                                 cameraPitch=-30, cameraTargetPosition=[0,0,1])
 
 
-Q, T, num_frame = read_data_sim("simulation/trajectory/arm_000.csv")
+Q_wh, T_wh, _, _, num_frame = read_data("simulation/trajectory/arm_000.csv")
 i = 0
 T_oh = np.zeros((1, 7))
 while p.isConnected():
     time.sleep(1./240.)
-    if i < 2:
-        q_base, t_base = Q[i], T[i]
+    if i < num_frame:
+        q_base, t_base = Q_wh[i], T_wh[i]
+        q_wo, t_wo = obj_startOrientation, obj_startPos
         if rotate_frame:
             q_base, t_base = frame_rotation(q_base, t_base)
             t_base += np.array(startPos)
+            q_wo = object_rotation(q_wo)
         p.resetBasePositionAndOrientation(robot_id, t_base, q_base)
         # 获取手部姿态
         hand_state = p.getLinkState(robot_id, 2)
         t_wh, q_wh = hand_state[0], hand_state[1]
-        t_wo, q_wo = obj_startPos, obj_startOrientation
         t_wh, q_wh, t_wo, q_wo = np.array(t_wh), np.array(q_wh), np.array(t_wo), np.array(q_wo)
         q_oh, t_oh, _ = coordinate_transform(q_wh, t_wh, q_wo, t_wo)
-        print("T_wh", q_wh, t_wh)
-        print("T_oh", q_oh, t_oh)
+        print("t_wh: ", q_wh, t_wh)
+        print("t_wo: ", q_wo, t_wo)
+        print("t_oh: ", q_oh, t_oh)
         hand_pose = np.concatenate((q_oh, t_oh), axis=0)
         T_oh =np.concatenate((T_oh, hand_pose.reshape(1,7)), axis=0)
         # ======================== grasp pose prediction ============================= #
