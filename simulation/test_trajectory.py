@@ -55,7 +55,7 @@ model.eval()
 
 joints_indexes = [i for i in range(p.getNumJoints(robot_id)) if p.getJointInfo(robot_id, i)[2] != p.JOINT_FIXED]
 
-p.setRealTimeSimulation(1)
+p.setRealTimeSimulation(0)
 p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
 # p.configureDebugVisualizer(p.COV_ENABLE_GUI, 1)
 p.resetDebugVisualizerCamera(cameraDistance=0.9, cameraYaw=-90,
@@ -63,11 +63,11 @@ p.resetDebugVisualizerCamera(cameraDistance=0.9, cameraYaw=-90,
 
 
 Q_wh, T_wh, _, _, num_frame = read_data("simulation/trajectory/arm_000.csv")
-i = 0
 T_oh = np.zeros((1, 7))
-while p.isConnected():
+for i in range(100000):
+    p.stepSimulation()
     time.sleep(1./240.)
-    if i < num_frame:
+    if i < 300:
         q_base, t_base = Q_wh[i], T_wh[i]
         q_wo, t_wo = obj_startOrientation, obj_startPos
         if rotate_frame:
@@ -91,9 +91,10 @@ while p.isConnected():
         idx = pred.argmax(0).item()
         pred_gpose = poses[idx]
         euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
-        print(euler_joint)
-
-        i += 1
+    if i == 300:
+        print(euler_joint)  # 欧拉角对应手腕顺序是翻、切 旋
+        joint_position = [-item*pi/180 for item in euler_joint]
+        auto_control(robot_id, p, [joint_position[2], joint_position[1], joint_position[0]])  # 顺序是旋、切、翻
     np.savetxt("simulation/trajectory/T_oh", T_oh[1:])
     
 
