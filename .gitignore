@@ -35,3 +35,6 @@ prediction/*
 !prediction/wrist_transform.py
 
 save_gposes_gtypes.py
+
+simulation/wrist_hand_left_v2
+simulation/trajectory

@@ -72,7 +72,7 @@ if __name__ == "__main__":
 	
 	subject = 'shixu'
 	lowCh = 0
-	highCh = 3
+	highCh = 5
 	fs = 2000
 	class_num = 5
 	analysis = Emg_onlineAnalysis(subject=subject, class_num=class_num, lowCh = lowCh, highCh = highCh, 

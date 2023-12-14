@@ -90,7 +90,7 @@ def readData(dataFileName, triggerFileName):
 if __name__ == "__main__":
 	subject = 'shixu'
 	lowCh = 0
-	highCh = 3
+	highCh = 5
 	fs = 2000
 	class_num = 5
 	emg_record = Emg_record(subject = subject, lowCh = lowCh, highCh = highCh, fs = fs, host = 'localhost')

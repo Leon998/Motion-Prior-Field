@@ -74,8 +74,7 @@ def coordinate_transform(q_wh, t_wh, q_wo, t_wo):
     # Transform
     r_oh = (np.linalg.inv(r_wo)).dot(r_wh)
     q_oh = R.from_matrix(r_oh).as_quat()
-    t_oh = np.linalg.inv(r_wo).dot(
-        t_wh + (-t_wo))  # Guess, pivot the object is right? Note that r_wo should be inversed
+    t_oh = np.linalg.inv(r_wo).dot(t_wh + (-t_wo))  # Guess, pivot the object is right? Note that r_wo should be inversed
     tf_oh = np.concatenate((q_oh, t_oh), axis=0)
     return q_oh, t_oh, tf_oh
 
