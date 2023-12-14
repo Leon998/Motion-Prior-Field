@@ -27,19 +27,22 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0, 0, 0)
 
 rotate_frame = True
-# if rotate_frame:
-#     # 加载URDF模型，此处是加载蓝白相间的陆地
-#     planeId = p.loadURDF("plane.urdf")
+height = 0
+if rotate_frame:
+    # 加载URDF模型，此处是加载蓝白相间的陆地
+    p.loadURDF("plane.urdf")
+    p.loadURDF("table/table.urdf", [0.5, 0, 0], p.getQuaternionFromEuler([0, 0, 0.5*pi]))
+    height = 0.67
 
 # 加载机器人，并设置加载的机器人的位姿
 robot_path = "simulation/wrist_hand_left_v2/urdf/wrist_hand_left_v2.urdf"
-startPos = [0, 0, 1]
+startPos = [0, 0, height]
 startOrientation = p.getQuaternionFromEuler([0, 0, 0])
 robot_id = p.loadURDF(robot_path, startPos, startOrientation, useFixedBase=1)
 # 加载物体，并随机设置一个位姿
 object_cls = objects['mug']
 obj_path = object_cls.file_path
-obj_startPos = [0.5, 0.1, 1.1]
+obj_startPos = [0.5, 0, height]  # 比较下来发现0.67的高度刚好在桌上
 obj_startOrientation = p.getQuaternionFromEuler([0, 0, 0.5*pi])
 obj = object_init(obj_path, q_init=obj_startOrientation, t_init=obj_startPos, p=p)
 obj_state = p.getBasePositionAndOrientation(obj.object_id)
@@ -54,9 +57,9 @@ joints_indexes = [i for i in range(p.getNumJoints(robot_id)) if p.getJointInfo(r
 
 p.setRealTimeSimulation(1)
 p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
-p.configureDebugVisualizer(p.COV_ENABLE_GUI, 1)
-p.resetDebugVisualizerCamera(cameraDistance=1.2, cameraYaw=135,
-                                 cameraPitch=-30, cameraTargetPosition=[0,0,1])
+# p.configureDebugVisualizer(p.COV_ENABLE_GUI, 1)
+p.resetDebugVisualizerCamera(cameraDistance=0.9, cameraYaw=-90,
+                                 cameraPitch=-37, cameraTargetPosition=obj_startPos)
 
 
 Q_wh, T_wh, _, _, num_frame = read_data("simulation/trajectory/arm_000.csv")
