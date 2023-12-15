@@ -47,7 +47,7 @@ class object_init:
 
 if __name__ == "__main__":
     _ = p.connect(p.GUI)
-    object_cls = objects['mug']
+    object_cls = objects['mustard_bottle']
     obj_path = object_cls.file_path
     obj_startPos = [0, 0, 0]
     obj_startOrientation = p.getQuaternionFromEuler([0, 0, 0])

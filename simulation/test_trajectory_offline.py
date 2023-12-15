@@ -15,6 +15,9 @@ from myutils.utils import *
 import torch
 import keyboard
 
+
+CONTROLLER = "kbd"
+
 # 连接物理引擎
 physicsCilent = p.connect(p.GUI)
 device = "cuda"
@@ -31,7 +34,7 @@ height = 0
 # 加载URDF模型，此处是加载蓝白相间的陆地
 p.loadURDF("plane.urdf")
 p.loadURDF("table/table.urdf", [0.5, 0, 0], p.getQuaternionFromEuler([0, 0, 0.5*pi]))
-height = 0.67  # 比较下来发现0.67的高度刚好在桌上
+height = 0.7  # 比较下来发现的高度刚好在桌上
 
 # 加载机器人，并设置加载的机器人的位姿
 robot_path = "simulation/wrist_hand_left_v2/urdf/wrist_hand_left_v2.urdf"
@@ -80,28 +83,31 @@ while not keyboard.is_pressed('esc'):
         # target_gpose
         target_gpose_wdc = gpose2wdc(target_gpose, q_wo, t_wo)
         p.resetBasePositionAndOrientation(target_hand_id, target_gpose_wdc[4:], target_gpose_wdc[0:4])
-        # 获取手部姿态
-        hand_state = p.getLinkState(robot_id, 2)
-        t_wh, q_wh = hand_state[0], hand_state[1]
-        t_wh, q_wh, t_wo, q_wo = np.array(t_wh), np.array(q_wh), np.array(t_wo), np.array(q_wo)
-        q_oh, t_oh, _ = coordinate_transform(q_wh, t_wh, q_wo, t_wo)
-        print("t_wh: ", q_wh, t_wh)
-        print("t_wo: ", q_wo, t_wo)
-        print("t_oh: ", q_oh, t_oh)
-        hand_pose = np.concatenate((q_oh, t_oh), axis=0)
-        T_oh =np.concatenate((T_oh, hand_pose.reshape(1,7)), axis=0)
-        # ======================== grasp pose prediction ============================= #
-        x = torch.from_numpy(hand_pose).type(torch.FloatTensor).to(device)
-        pred = model(x)
-        idx = pred.argmax(0).item()
-        pred_gpose = poses[idx]
-        euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
-    if keyboard.is_pressed('ctrl'):
-        print(euler_joint)  # 欧拉角对应手腕顺序是翻、切 旋
-        joint_position = [-item*pi/180 for item in euler_joint]
-        auto_controller(robot_id, p, [joint_position[2], joint_position[1], joint_position[0]])  # 顺序是旋、切、翻
-    if keyboard.is_pressed('backspace'):
-        auto_controller(robot_id, p, [0, 0, 0])
+        if CONTROLLER == "auto":
+            # 获取手部姿态
+            hand_state = p.getLinkState(robot_id, 2)
+            t_wh, q_wh = hand_state[0], hand_state[1]
+            t_wh, q_wh, t_wo, q_wo = np.array(t_wh), np.array(q_wh), np.array(t_wo), np.array(q_wo)
+            q_oh, t_oh, _ = coordinate_transform(q_wh, t_wh, q_wo, t_wo)
+            print("t_wh: ", q_wh, t_wh)
+            print("t_wo: ", q_wo, t_wo)
+            print("t_oh: ", q_oh, t_oh)
+            hand_pose = np.concatenate((q_oh, t_oh), axis=0)
+            T_oh =np.concatenate((T_oh, hand_pose.reshape(1,7)), axis=0)
+            # ======================== grasp pose prediction ============================= #
+            x = torch.from_numpy(hand_pose).type(torch.FloatTensor).to(device)
+            pred = model(x)
+            idx = pred.argmax(0).item()
+            pred_gpose = poses[idx]
+            euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
+            if keyboard.is_pressed('ctrl'):
+                print(euler_joint)  # 欧拉角对应手腕顺序是翻、切 旋
+                joint_position = [-item*pi/180 for item in euler_joint]
+                auto_controller(robot_id, p, [joint_position[2], joint_position[1], joint_position[0]])  # 顺序是旋、切、翻
+        elif CONTROLLER == "kbd":
+            kbd_controller(robot_id, p)
+        if keyboard.is_pressed('backspace'):
+            auto_controller(robot_id, p, [0, 0, 0])
 
     i += 1
     

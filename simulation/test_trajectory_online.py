@@ -16,6 +16,9 @@ import torch
 import keyboard
 import redis
 
+
+CONTROLLER = "auto"
+
 # 连接物理引擎
 physicsCilent = p.connect(p.GUI)
 device = "cuda"
@@ -32,7 +35,7 @@ height = 0
 # 加载URDF模型，此处是加载蓝白相间的陆地
 p.loadURDF("plane.urdf")
 p.loadURDF("table/table.urdf", [0.5, 0, 0], p.getQuaternionFromEuler([0, 0, 0.5*pi]))
-height = 0.67  # 比较下来发现0.67的高度刚好在桌上
+height = 0.7  # 比较下来发现的高度刚好在桌上
 # redis
 r = redis.Redis(host='localhost', port=6379, decode_responses=True)  
 # 加载机器人，并设置加载的机器人的位姿
@@ -67,7 +70,6 @@ p.resetDebugVisualizerCamera(cameraDistance=0.9, cameraYaw=-90,
 
 T_oh = np.zeros((1, 7))
 
-CONTROLLER = "auto"
 
 while not keyboard.is_pressed('esc'):
     t_base = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
