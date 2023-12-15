@@ -34,11 +34,9 @@ if rotate_frame:
     p.loadURDF("table/table.urdf", [0.5, 0, 0], p.getQuaternionFromEuler([0, 0, 0.5*pi]))
     height = 0.67
 
-# 加载机器人，并设置加载的机器人的位姿
+# 加载手
 robot_path = "simulation/hand_left_v2/urdf/hand_left_v2.urdf"
-startPos = [0, 0, height]
-startOrientation = p.getQuaternionFromEuler([0, 0, 0])
-robot_id = p.loadURDF(robot_path, startPos, startOrientation, useFixedBase=1)
+robot_id = p.loadURDF(robot_path, useFixedBase=1)
 # 加载物体，并随机一个位姿
 object_cls = objects['mug']
 obj_path = object_cls.file_path

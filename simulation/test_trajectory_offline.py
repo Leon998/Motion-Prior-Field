@@ -31,7 +31,7 @@ height = 0
 # 加载URDF模型，此处是加载蓝白相间的陆地
 p.loadURDF("plane.urdf")
 p.loadURDF("table/table.urdf", [0.5, 0, 0], p.getQuaternionFromEuler([0, 0, 0.5*pi]))
-height = 0.67
+height = 0.67  # 比较下来发现0.67的高度刚好在桌上
 
 # 加载机器人，并设置加载的机器人的位姿
 robot_path = "simulation/wrist_hand_left_v2/urdf/wrist_hand_left_v2.urdf"
@@ -41,13 +41,17 @@ robot_id = p.loadURDF(robot_path, startPos, startOrientation, useFixedBase=1)
 # 加载物体，并随机一个位姿
 object_cls = objects['mug']
 obj_path = object_cls.file_path
-obj_startPos = [0.5, 0, height]  # 比较下来发现0.67的高度刚好在桌上
+obj_startPos = [0.5, 0, height]
 obj_startOrientation = p.getQuaternionFromEuler([0, 0, 0.5*pi])
 obj = object_init(obj_path, q_init=obj_startOrientation, t_init=obj_startPos, p=p)
 # ====================== gpose prediction module initialization ======================== #
 poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
 model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/uncluster_noisy.pkl')
 model.eval()
+# gpose
+target_hand_path = "simulation/hand_left_v2/urdf/hand_left_v2.urdf"
+target_hand_id = p.loadURDF(target_hand_path, useFixedBase=1)
+target_gpose = poses[5]
 
 
 joints_indexes = [i for i in range(p.getNumJoints(robot_id)) if p.getJointInfo(robot_id, i)[2] != p.JOINT_FIXED]
@@ -73,6 +77,9 @@ while not keyboard.is_pressed('esc'):
         # 物体自身旋转
         q_wo, t_wo = obj_startOrientation, obj_startPos
         q_wo = object_rotation(q_wo)
+        # target_gpose
+        target_gpose_wdc = gpose2wdc(target_gpose, q_wo, t_wo)
+        p.resetBasePositionAndOrientation(target_hand_id, target_gpose_wdc[4:], target_gpose_wdc[0:4])
         # 获取手部姿态
         hand_state = p.getLinkState(robot_id, 2)
         t_wh, q_wh = hand_state[0], hand_state[1]
@@ -93,6 +100,9 @@ while not keyboard.is_pressed('esc'):
         print(euler_joint)  # 欧拉角对应手腕顺序是翻、切 旋
         joint_position = [-item*pi/180 for item in euler_joint]
         auto_controller(robot_id, p, [joint_position[2], joint_position[1], joint_position[0]])  # 顺序是旋、切、翻
+    if keyboard.is_pressed('backspace'):
+        auto_controller(robot_id, p, [0, 0, 0])
+
     i += 1
     
 # 断开连接
