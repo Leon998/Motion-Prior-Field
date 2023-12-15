@@ -24,7 +24,7 @@ class object_init:
             rgbaColor=[0.9, 0, 0, 1],
             specularColor=[0.4, 0.4, 0],
             visualFramePosition=[0, 0, 0],
-            meshScale=[1, 1, 1],
+            meshScale=[1.2, 1.2, 1.2],
         )
         collision_shape_id = p.createCollisionShape(
             shapeType=p.GEOM_MESH,
@@ -35,7 +35,7 @@ class object_init:
         # 使用创建的视觉形状和碰撞箱形状使用createMultiBody将两者结合在一起
         self.object_id = p.createMultiBody(
             baseMass=0,
-            baseCollisionShapeIndex=collision_shape_id,
+            # baseCollisionShapeIndex=collision_shape_id,  # 可以用穿模来避免碰撞
             baseVisualShapeIndex=visual_shape_id,
             useMaximalCoordinates=True
         )

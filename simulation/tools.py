@@ -39,7 +39,7 @@ def read_data_sim(file_name):
 
 def frame_rotation(q_base, t_base):
     """
-    绕x轴旋转整个坐标系90°
+    将robot绕世界坐标系x轴旋转90°
     """
     r_base = R.from_quat(q_base).as_matrix()
     r_frame = np.array([[1,0,0],[0,0,-1],[0,1,0]])
