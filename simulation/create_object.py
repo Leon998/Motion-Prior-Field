@@ -1,7 +1,11 @@
+import os
+import sys
+sys.path.append(os.getcwd())
 import pybullet as p
 import pybullet_data
 import time
 from math import pi
+from myutils.object_config import objects
 
 class object_init:
     def __init__(self, 
@@ -43,9 +47,11 @@ class object_init:
 
 if __name__ == "__main__":
     _ = p.connect(p.GUI)
+    object_cls = objects['mug']
+    obj_path = object_cls.file_path
     obj_startPos = [0, 0, 0]
     obj_startOrientation = p.getQuaternionFromEuler([0, 0, 0])
-    obj = object_init("models/025_mug/textured_simple.obj", q_init=obj_startOrientation, t_init=obj_startPos, p=p)
+    obj = object_init(obj_path, q_init=obj_startOrientation, t_init=obj_startPos, p=p)
     # 添加资源路径
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
     p.setPhysicsEngineParameter(numSolverIterations=10)

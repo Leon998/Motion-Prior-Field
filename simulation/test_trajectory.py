@@ -7,11 +7,13 @@ import pybullet_data
 from math import pi
 import numpy as np
 from simulation.tools import *
+from simulation.controller import auto_controller, kbd_controller
 from scipy.spatial.transform import Rotation as R
 from create_object import object_init
 from myutils.object_config import objects
 from myutils.utils import *
 import torch
+import keyboard
 
 # 连接物理引擎
 physicsCilent = p.connect(p.GUI)
@@ -19,10 +21,8 @@ device = "cuda"
 # 渲染逻辑
 p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0)
 p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)
-
 # 添加资源路径
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
-
 # 设置环境重力加速度
 p.setGravity(0, 0, 0)
 
@@ -39,7 +39,7 @@ robot_path = "simulation/wrist_hand_left_v2/urdf/wrist_hand_left_v2.urdf"
 startPos = [0, 0, height]
 startOrientation = p.getQuaternionFromEuler([0, 0, 0])
 robot_id = p.loadURDF(robot_path, startPos, startOrientation, useFixedBase=1)
-# 加载物体，并随机设置一个位姿
+# 加载物体，并随机一个位姿
 object_cls = objects['mug']
 obj_path = object_cls.file_path
 obj_startPos = [0.5, 0, height]  # 比较下来发现0.67的高度刚好在桌上
@@ -64,10 +64,11 @@ p.resetDebugVisualizerCamera(cameraDistance=0.9, cameraYaw=-90,
 
 Q_wh, T_wh, _, _, num_frame = read_data("simulation/trajectory/arm_000.csv")
 T_oh = np.zeros((1, 7))
-for i in range(100000):
+i = 0
+while not keyboard.is_pressed('esc'):
     p.stepSimulation()
     time.sleep(1./240.)
-    if i < 300:
+    if i < num_frame:
         q_base, t_base = Q_wh[i], T_wh[i]
         q_wo, t_wo = obj_startOrientation, obj_startPos
         if rotate_frame:
@@ -91,12 +92,12 @@ for i in range(100000):
         idx = pred.argmax(0).item()
         pred_gpose = poses[idx]
         euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
-    if i == 300:
+    if keyboard.is_pressed('ctrl'):
         print(euler_joint)  # 欧拉角对应手腕顺序是翻、切 旋
         joint_position = [-item*pi/180 for item in euler_joint]
-        auto_control(robot_id, p, [joint_position[2], joint_position[1], joint_position[0]])  # 顺序是旋、切、翻
-    np.savetxt("simulation/trajectory/T_oh", T_oh[1:])
+        auto_controller(robot_id, p, [joint_position[2], joint_position[1], joint_position[0]])  # 顺序是旋、切、翻
+    i += 1
     
-
 # 断开连接
 p.disconnect()
+np.savetxt("simulation/trajectory/T_oh", T_oh[1:])
