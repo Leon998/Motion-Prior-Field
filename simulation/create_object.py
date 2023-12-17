@@ -21,7 +21,7 @@ class object_init:
         visual_shape_id = p.createVisualShape(
             shapeType=p.GEOM_MESH,
             fileName=self.file_path,
-            rgbaColor=[0.9, 0, 0, 1],
+            rgbaColor=[1, 1, 1, 1],
             specularColor=[0.4, 0.4, 0],
             visualFramePosition=[0, 0, 0],
             meshScale=[1.2, 1.2, 1.2],
@@ -47,7 +47,7 @@ class object_init:
 
 if __name__ == "__main__":
     _ = p.connect(p.GUI)
-    object_cls = objects['mustard_bottle']
+    object_cls = objects['mug']
     obj_path = object_cls.file_path
     obj_startPos = [0, 0, 0]
     obj_startOrientation = p.getQuaternionFromEuler([0, 0, 0])

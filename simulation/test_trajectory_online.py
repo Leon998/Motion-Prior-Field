@@ -40,13 +40,13 @@ height = 0.7  # 比较下来发现的高度刚好在桌上
 r = redis.Redis(host='localhost', port=6379, decode_responses=True)  
 # 加载机器人，并设置加载的机器人的位姿
 robot_path = "simulation/wrist_hand_left_v2/urdf/wrist_hand_left_v2.urdf"
-startPos = [0, 0, height]
+startPos = [0, 0, height-0.1]
 startOrientation = p.getQuaternionFromEuler([0, 0, 0])
 robot_id = p.loadURDF(robot_path, startPos, startOrientation, useFixedBase=1)
 # 加载物体，并随机一个位姿
 object_cls = objects['mug']
 obj_path = object_cls.file_path
-obj_startPos = [0.5, 0, height]
+obj_startPos = [0.3, 0, height]
 obj_startOrientation = p.getQuaternionFromEuler([0, 0, 0.5*pi])
 obj = object_init(obj_path, q_init=obj_startOrientation, t_init=obj_startPos, p=p)
 # ====================== gpose prediction module initialization ======================== #
@@ -101,7 +101,7 @@ while not keyboard.is_pressed('esc'):
         idx = pred.argmax(0).item()
         pred_gpose = poses[idx]
         euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
-        if keyboard.is_pressed('ctrl'):
+        if keyboard.is_pressed('enter'):
             print(euler_joint)  # 欧拉角对应手腕顺序是翻、切 旋
             joint_position = [-item*pi/180 for item in euler_joint]
             auto_controller(robot_id, p, [joint_position[2], joint_position[1], joint_position[0]])  # 顺序是旋、切、翻

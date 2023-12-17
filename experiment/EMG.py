@@ -15,6 +15,7 @@ import keyboard, time
 import math, random
 import argparse
 
+
 def target_grasp_init(object_cls, poses, target_idx):
     if object_cls == mug and target_idx < 60:
         grasp_type = grasp_handle
@@ -25,21 +26,12 @@ def target_grasp_init(object_cls, poses, target_idx):
     target_gpose = poses[target_idx]
     return grasp_type, target_gpose
 
-# ======================= 实验参数配置 ================================== #
-# Subject name
-subject = 'ShiXu'
-# Object name
-object_cls = objects['mug']
-# Comparing
-TRO = False
-# Trial number
-trial_num = 3
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='MPF')
+    parser = argparse.ArgumentParser(description='baseline')
     parser.add_argument('--name','-n',type=str, default = "shixu",required=True,help="subject name")
     parser.add_argument('--obj','-o',type=str, default = "mug",required=True,help="object class")
-    parser.add_argument('--tro','-tro',type=bool, default = False,required=True,help="TRO comparing")
     parser.add_argument('--trial','-t',type=int, default = 3,required=True,help="trial number")
     args = parser.parse_args()
     # ======================= 实验参数配置 ================================== #
@@ -47,14 +39,14 @@ if __name__ == "__main__":
     subject = args.name
     # Object name
     object_cls = objects[args.obj]
-    # Comparing
-    TRO = args.tro
     # Trial number
     trial_num = args.trial
     # ======================================================================= #
+
     save_path = 'experiment/data/' + subject + '/'
     if not os.path.exists(save_path):
         os.mkdir(save_path)
+    
     # pool = redis.ConnectionPool(host='localhost', port=6379, decode_responses=True)
     r = redis.Redis(host='localhost', port=6379, decode_responses=True)  
     # ====================== gpose prediction module initialization ======================== #
@@ -82,10 +74,6 @@ if __name__ == "__main__":
     target_hand.mesh.paint_uniform_color([150 / 255, 195 / 255, 125 / 255])
     vis.add_geometry(target_hand.mesh)
 
-    pred_hand = assets(mesh=load_mano())
-    pred_hand.mesh.paint_uniform_color([250 / 255, 127 / 255, 111 / 255])
-    vis.add_geometry(pred_hand.mesh)
-
     # 初始化手腕位置
     wrist_tf(0, -45)
     flexion_degree, rotation_degree = read_wrist()
@@ -93,8 +81,6 @@ if __name__ == "__main__":
     record = False
 
     prefix = save_path + object_cls.name + '_'
-    if TRO:
-        prefix = prefix + 'TRO_'
 
     trial = 1
     saved_num = 0
@@ -118,26 +104,14 @@ if __name__ == "__main__":
         grasp_type, target_gpose = target_grasp_init(object_cls, poses, target_idx)
         target_gpose_wdc = gpose2wdc(target_gpose, q_wo, t_wo)
         
-        # ======================== grasp pose prediction ============================= #
-        x = torch.from_numpy(hand_pose).type(torch.FloatTensor).to(device)
-        pred = model(x)
-        idx = pred.argmax(0).item()
-        pred_gpose = poses[idx]
-        if TRO:
-            pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.02,std_t=0.001)
-        else:
-            pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.001,std_t=0)
-        pred_gpose_wdc = gpose2wdc(pred_gpose, q_wo, t_wo)
 
         # ============================== update transform ============================= #
         hand.update_transform(hand_pose_wdc)
         target_hand.update_transform(target_gpose_wdc)
-        pred_hand.update_transform(pred_gpose_wdc)
         object.update_transform(object_pose_wdc)
 
         vis.update_geometry(hand.mesh)
         vis.update_geometry(target_hand.mesh)
-        vis.update_geometry(pred_hand.mesh)
         vis.update_geometry(object.mesh)
 
         # 更新窗口
@@ -152,9 +126,34 @@ if __name__ == "__main__":
 
         if record:
             log_hand = np.concatenate((log_hand, hand_pose.reshape(1,7)), axis=0)
-        # ============================== semi-auto control ============================= #
+        # ============================== EMG control ============================= #
+        flexion_degree, rotation_degree = 0, 0
+        d_flexion = 5
+        d_rotation = 10
         action = int(r.get('action'))
-        if action == 2:
+        flexion_degree, rotation_degree = read_wrist()
+        if action == 0:
+            release_grasp()
+        elif action == 1:
+            d_tf = wrist_limit(flexion_degree+d_flexion, rotation_degree)
+            wrist_tf(d_tf[0], d_tf[1])
+        elif action == 2:
+            d_tf = wrist_limit(flexion_degree-d_flexion, rotation_degree)
+            wrist_tf(d_tf[0], d_tf[1])
+        elif action == 3:
+            d_tf = wrist_limit(flexion_degree, rotation_degree-d_rotation)
+            wrist_tf(d_tf[0], d_tf[1])
+        elif action == 4:
+            d_tf = wrist_limit(flexion_degree, rotation_degree+d_rotation)
+            wrist_tf(d_tf[0], d_tf[1])
+        elif action == 5:
+            grasp_type()
+        if keyboard.is_pressed('space'):
+            log_hand = np.array(target_gpose).reshape(1,7)
+            print("Trial %d is Recording" % trial)
+            record = True
+            t_start = time.time()
+        elif keyboard.is_pressed('enter'):
             print("Grasping!")
             grasp_type()
             t_end = time.time()
@@ -168,27 +167,6 @@ if __name__ == "__main__":
             saved_num += 1
             time.sleep(1.5)
             release_grasp()
-        if keyboard.is_pressed('space'):
-            log_hand = np.array(target_gpose).reshape(1,7)
-            print("Trial %d is Recording" % trial)
-            record = True
-            t_start = time.time()
-        elif keyboard.is_pressed('ctrl'):
-            print("wrist joint driving")
-            euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
-            flexion_degree += euler_joint[0]
-            rotation_degree += -euler_joint[2]
-            flexion_degree, rotation_degree = wrist_limit(flexion_degree, rotation_degree)
-            wrist_tf(flexion_degree, rotation_degree)
-            time.sleep(1.5)
-            # flexion_degree, rotation_degree = read_wrist()
-            # print(flexion_degree, rotation_degree)
-        elif keyboard.is_pressed('backspace'):
-            print("reset pose")
-            wrist_tf(0, -45)
-            time.sleep(1.5)
-            # flexion_degree, rotation_degree = read_wrist()
-            # # print(flexion_degree, rotation_degree)
         elif keyboard.is_pressed('shift'):
             trial = saved_num + 1
             print("New trial: ", trial)
