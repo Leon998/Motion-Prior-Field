@@ -25,22 +25,14 @@ def target_grasp_init(object_cls, poses, target_idx):
     target_gpose = poses[target_idx]
     return grasp_type, target_gpose
 
-# ======================= 实验参数配置 ================================== #
-# Subject name
-subject = 'ShiXu'
-# Object name
-object_cls = objects['mug']
-# Comparing
-TRO = False
-# Trial number
-trial_num = 3
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='MPF')
     parser.add_argument('--name','-n',type=str, default = "shixu",required=True,help="subject name")
     parser.add_argument('--obj','-o',type=str, default = "mug",required=True,help="object class")
-    parser.add_argument('--tro','-tro',type=bool, default = False,required=True,help="TRO comparing")
-    parser.add_argument('--trial','-t',type=int, default = 3,required=True,help="trial number")
+    parser.add_argument('--tro','-tro',type=bool, default = False,required=False,help="TRO comparing")
+    parser.add_argument('--trial','-t',type=int, default = 2,required=False,help="trial number")
     args = parser.parse_args()
     # ======================= 实验参数配置 ================================== #
     # Subject name
@@ -87,7 +79,7 @@ if __name__ == "__main__":
     vis.add_geometry(pred_hand.mesh)
 
     # 初始化手腕位置
-    wrist_tf(0, -45)
+    wrist_tf(0, 45)
     flexion_degree, rotation_degree = read_wrist()
     # Recording
     record = False
@@ -153,21 +145,21 @@ if __name__ == "__main__":
         if record:
             log_hand = np.concatenate((log_hand, hand_pose.reshape(1,7)), axis=0)
         # ============================== semi-auto control ============================= #
-        action = int(r.get('action'))
-        if action == 2:
-            print("Grasping!")
-            grasp_type()
-            t_end = time.time()
-            print("Trial %d end recording" % trial)
-            duration = t_end - t_start
-            print("time:", duration)
-            record = False
-            np.savetxt(prefix + 'log_hand_' + str(trial) + '.txt', log_hand)
-            with open(prefix + 'time_' + str(trial) + '.txt', 'w') as f:
-                f.write(str(duration))
-            saved_num += 1
-            time.sleep(1.5)
-            release_grasp()
+        # action = int(r.get('action'))
+        # if action == 2:
+        #     print("Grasping!")
+        #     grasp_type()
+        #     t_end = time.time()
+        #     print("Trial %d end recording" % trial)
+        #     duration = t_end - t_start
+        #     print("time:", duration)
+        #     record = False
+        #     np.savetxt(prefix + 'log_hand_' + str(trial) + '.txt', log_hand)
+        #     with open(prefix + 'time_' + str(trial) + '.txt', 'w') as f:
+        #         f.write(str(duration))
+        #     saved_num += 1
+        #     time.sleep(1.5)
+        #     release_grasp()
         if keyboard.is_pressed('space'):
             log_hand = np.array(target_gpose).reshape(1,7)
             print("Trial %d is Recording" % trial)
@@ -177,17 +169,19 @@ if __name__ == "__main__":
             print("wrist joint driving")
             euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
             flexion_degree += euler_joint[0]
-            rotation_degree += -euler_joint[2]
+            rotation_degree += euler_joint[2]
             flexion_degree, rotation_degree = wrist_limit(flexion_degree, rotation_degree)
+            print("预测角度：", euler_joint[0], euler_joint[2])
+            print("驱动角度：", flexion_degree, rotation_degree)
             wrist_tf(flexion_degree, rotation_degree)
             time.sleep(1.5)
-            # flexion_degree, rotation_degree = read_wrist()
+            flexion_degree, rotation_degree = read_wrist()
             # print(flexion_degree, rotation_degree)
         elif keyboard.is_pressed('backspace'):
             print("reset pose")
-            wrist_tf(0, -45)
+            wrist_tf(0, 45)
             time.sleep(1.5)
-            # flexion_degree, rotation_degree = read_wrist()
+            flexion_degree, rotation_degree = read_wrist()
             # # print(flexion_degree, rotation_degree)
         elif keyboard.is_pressed('shift'):
             trial = saved_num + 1
@@ -199,7 +193,7 @@ if __name__ == "__main__":
             vis.destroy_window()
             break
         
-    wrist_tf(0, -45)
+    wrist_tf(0, 45)
     canDLL.VCI_CloseDevice(VCI_USBCAN2, 0) 
 
 
