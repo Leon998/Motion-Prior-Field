@@ -78,7 +78,7 @@ if __name__ == "__main__":
     lowCh = 0
     highCh = 5
     fs = 2000
-    class_num = 5
+    class_num = 6
     analysis = Emg_onlineAnalysis(subject=subject, class_num=class_num, lowCh = lowCh, highCh = highCh, 
                                window_length = 0.2, window_step = 0.05, fs = fs, host = 'localhost')
     analysis.dev.start()

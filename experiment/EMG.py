@@ -43,7 +43,7 @@ if __name__ == "__main__":
     trial_num = args.trial
     # ======================================================================= #
 
-    save_path = 'experiment/data/' + subject + '/'
+    save_path = 'experiment/data/' + subject + '_EMG/'
     if not os.path.exists(save_path):
         os.mkdir(save_path)
     
@@ -84,6 +84,7 @@ if __name__ == "__main__":
 
     trial = 1
     saved_num = 0
+    grasp = grasp_other
     
     while saved_num < trial_num:
         # hand
@@ -133,7 +134,7 @@ if __name__ == "__main__":
         action = int(r.get('action'))
         flexion_degree, rotation_degree = read_wrist()
         if action == 0:
-            release_grasp()
+            pass
         elif action == 1:
             d_tf = wrist_limit(flexion_degree+d_flexion, rotation_degree)
             wrist_tf(d_tf[0], d_tf[1])
@@ -146,16 +147,9 @@ if __name__ == "__main__":
         elif action == 4:
             d_tf = wrist_limit(flexion_degree, rotation_degree+d_rotation)
             wrist_tf(d_tf[0], d_tf[1])
-        elif action == 5:
-            grasp_type()
-        if keyboard.is_pressed('space'):
-            log_hand = np.array(target_gpose).reshape(1,7)
-            print("Trial %d is Recording" % trial)
-            record = True
-            t_start = time.time()
-        elif keyboard.is_pressed('enter'):
+        elif action == 5 or keyboard.is_pressed('enter'):
             print("Grasping!")
-            grasp_type()
+            grasp()
             t_end = time.time()
             print("Trial %d end recording" % trial)
             duration = t_end - t_start
@@ -167,6 +161,19 @@ if __name__ == "__main__":
             saved_num += 1
             time.sleep(1.5)
             release_grasp()
+        # ============================= kbd control part ======================= #
+        if keyboard.is_pressed('space'):
+            log_hand = np.array(target_gpose).reshape(1,7)
+            print("Trial %d is Recording" % trial)
+            record = True
+            t_start = time.time()
+        elif keyboard.is_pressed('backspace'):
+            print("reset pose")
+            release_grasp()
+            wrist_tf(0, 45)
+            time.sleep(1.5)
+            flexion_degree, rotation_degree = read_wrist()
+            # print(flexion_degree, rotation_degree)
         elif keyboard.is_pressed('shift'):
             trial = saved_num + 1
             print("New trial: ", trial)

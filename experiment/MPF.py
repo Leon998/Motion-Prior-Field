@@ -31,7 +31,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='MPF')
     parser.add_argument('--name','-n',type=str, default = "shixu",required=True,help="subject name")
     parser.add_argument('--obj','-o',type=str, default = "mug",required=True,help="object class")
-    parser.add_argument('--tro','-tro',type=bool, default = False,required=False,help="TRO comparing")
+    parser.add_argument('--compare','-c',type=bool, default = False,required=False,help="TRO comparing")
     parser.add_argument('--trial','-t',type=int, default = 2,required=False,help="trial number")
     args = parser.parse_args()
     # ======================= 实验参数配置 ================================== #
@@ -40,11 +40,11 @@ if __name__ == "__main__":
     # Object name
     object_cls = objects[args.obj]
     # Comparing
-    TRO = args.tro
+    TRO = args.compare
     # Trial number
     trial_num = args.trial
     # ======================================================================= #
-    save_path = 'experiment/data/' + subject + '/'
+    save_path = 'experiment/data/' + subject + '_MPF/'
     if not os.path.exists(save_path):
         os.mkdir(save_path)
     # pool = redis.ConnectionPool(host='localhost', port=6379, decode_responses=True)
@@ -145,27 +145,8 @@ if __name__ == "__main__":
         if record:
             log_hand = np.concatenate((log_hand, hand_pose.reshape(1,7)), axis=0)
         # ============================== semi-auto control ============================= #
-        # action = int(r.get('action'))
-        # if action == 2:
-        #     print("Grasping!")
-        #     grasp_type()
-        #     t_end = time.time()
-        #     print("Trial %d end recording" % trial)
-        #     duration = t_end - t_start
-        #     print("time:", duration)
-        #     record = False
-        #     np.savetxt(prefix + 'log_hand_' + str(trial) + '.txt', log_hand)
-        #     with open(prefix + 'time_' + str(trial) + '.txt', 'w') as f:
-        #         f.write(str(duration))
-        #     saved_num += 1
-        #     time.sleep(1.5)
-        #     release_grasp()
-        if keyboard.is_pressed('space'):
-            log_hand = np.array(target_gpose).reshape(1,7)
-            print("Trial %d is Recording" % trial)
-            record = True
-            t_start = time.time()
-        elif keyboard.is_pressed('ctrl'):
+        action = int(r.get('action'))
+        if action == 1 or keyboard.is_pressed('ctrl'):
             print("wrist joint driving")
             euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
             flexion_degree += euler_joint[0]
@@ -177,12 +158,33 @@ if __name__ == "__main__":
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
             # print(flexion_degree, rotation_degree)
+        elif action == 5 or keyboard.is_pressed('enter'):
+            print("Grasping!")
+            grasp_type()
+            t_end = time.time()
+            print("Trial %d end recording" % trial)
+            duration = t_end - t_start
+            print("time:", duration)
+            record = False
+            np.savetxt(prefix + 'log_hand_' + str(trial) + '.txt', log_hand)
+            with open(prefix + 'time_' + str(trial) + '.txt', 'w') as f:
+                f.write(str(duration))
+            saved_num += 1
+            time.sleep(1.5)
+            release_grasp()
+        # ============================= kbd control part ======================= #
+        if keyboard.is_pressed('space'):
+            log_hand = np.array(target_gpose).reshape(1,7)
+            print("Trial %d is Recording" % trial)
+            record = True
+            t_start = time.time()
         elif keyboard.is_pressed('backspace'):
             print("reset pose")
+            release_grasp()
             wrist_tf(0, 45)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
-            # # print(flexion_degree, rotation_degree)
+            # print(flexion_degree, rotation_degree)
         elif keyboard.is_pressed('shift'):
             trial = saved_num + 1
             print("New trial: ", trial)

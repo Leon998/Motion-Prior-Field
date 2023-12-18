@@ -97,7 +97,7 @@ if __name__ == "__main__":
     lowCh = 0
     highCh = 5
     fs = 2000
-    class_num = 5
+    class_num = 6
     emg_record = Emg_record(subject = subject, lowCh = lowCh, highCh = highCh, fs = fs, host = 'localhost')
     emg_record.dev.start()
     _thread.start_new_thread(emg_record.dev.read, ())
