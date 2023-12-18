@@ -40,7 +40,7 @@ height = 0.7  # 比较下来发现的高度刚好在桌上
 r = redis.Redis(host='localhost', port=6379, decode_responses=True)  
 # 加载机器人，并设置加载的机器人的位姿
 robot_path = "simulation/wrist_hand_left_v2/urdf/wrist_hand_left_v2.urdf"
-startPos = [0, 0, height-0.1]
+startPos = [0, 0, height]
 startOrientation = p.getQuaternionFromEuler([0, 0, 0])
 robot_id = p.loadURDF(robot_path, startPos, startOrientation, useFixedBase=1)
 # 加载物体，并随机一个位姿

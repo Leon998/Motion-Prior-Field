@@ -48,6 +48,7 @@ class Emg_record():
                 self.trigger_listener('2')
                 self.trigger_listener('3')
                 self.trigger_listener('4')
+                self.trigger_listener('5')
                 if keyboard.is_pressed('esc'):
                     LOOP_FLAG = False
                     break
@@ -121,7 +122,7 @@ if __name__ == "__main__":
     trigger1 = {key:value for key,value in trigger_idx.items() if key in class_list}
     print("trigger1: ", trigger1)
     # =================================================== #
-    classify1 = EMGAnalysis(class_num = class_num, channel_num = highCh-lowCh+1, st = 1, nd = 6,
+    classify1 = EMGAnalysis(class_num = class_num, channel_num = highCh-lowCh+1, st = 1, nd = 5,
                           model_name = 'emg_decoding/' + str(subject) + '_wrist', classifier = 0)
     classify1.data = data
     classify1.trigger = trigger1

@@ -6,7 +6,7 @@ from math import pi
 
 def auto_controller(robot_id, p, joint_positions):
     maxV = [2, 2, 2]
-    maxF = [0.1, 0.2, 0.2]
+    maxF = [0.5, 0.5, 0.5]
     p.setJointMotorControlArray(
             bodyUniqueId=robot_id,
             jointIndices=[0, 1, 2],

@@ -14,6 +14,7 @@ from can.hand_control import *
 import keyboard, time
 import math, random
 import argparse
+from collections import deque
 
 
 def target_grasp_init(object_cls, poses, target_idx):
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='baseline')
     parser.add_argument('--name','-n',type=str, default = "shixu",required=True,help="subject name")
     parser.add_argument('--obj','-o',type=str, default = "mug",required=True,help="object class")
-    parser.add_argument('--trial','-t',type=int, default = 3,required=True,help="trial number")
+    parser.add_argument('--trial','-t',type=int, default = 3,required=False,help="trial number")
     args = parser.parse_args()
     # ======================= 实验参数配置 ================================== #
     # Subject name
@@ -75,7 +76,7 @@ if __name__ == "__main__":
     vis.add_geometry(target_hand.mesh)
 
     # 初始化手腕位置
-    wrist_tf(0, -45)
+    wrist_tf(20, 45)
     flexion_degree, rotation_degree = read_wrist()
     # Recording
     record = False
@@ -84,9 +85,10 @@ if __name__ == "__main__":
 
     trial = 1
     saved_num = 0
-    grasp = grasp_other
+    grasp_type = grasp_other
+    action = deque(maxlen=5)
     
-    while saved_num < trial_num:
+    while True:
         # hand
         t_wh = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
         q_wh = np.array([float(i) for i in r.get('hand_rotation')[1:-1].split(',')])
@@ -127,29 +129,56 @@ if __name__ == "__main__":
 
         if record:
             log_hand = np.concatenate((log_hand, hand_pose.reshape(1,7)), axis=0)
+
+        # ============================= kbd control part ======================= #
+        if keyboard.is_pressed('space'):
+            log_hand = np.array(target_gpose).reshape(1,7)
+            print("Trial %d is Recording" % trial)
+            record = True
+            t_start = time.time()
+        if keyboard.is_pressed('backspace'):
+            print("reset pose")
+            release_grasp()
+            wrist_tf(0, 45)
+            time.sleep(1.5)
+            flexion_degree, rotation_degree = read_wrist()
+            # print(flexion_degree, rotation_degree)
+        if keyboard.is_pressed('shift'):
+            trial = trial + 1
+            if trial > trial_num:
+                print("END")
+                break
+            print("New trial: ", trial)
+            print("======================================================")
+            record = False
+            time.sleep(1.5)
+        if keyboard.is_pressed('esc'):
+            print("END")
+            vis.destroy_window()
+            break
         # ============================== EMG control ============================= #
         flexion_degree, rotation_degree = 0, 0
         d_flexion = 5
         d_rotation = 10
-        action = int(r.get('action'))
+        action.append(int(r.get('action')))
         flexion_degree, rotation_degree = read_wrist()
-        if action == 0:
+        if all(x == 0 for x in action):
             pass
-        elif action == 1:
+        elif all(x == 1 for x in action):
             d_tf = wrist_limit(flexion_degree+d_flexion, rotation_degree)
             wrist_tf(d_tf[0], d_tf[1])
-        elif action == 2:
+        elif all(x == 2 for x in action):
             d_tf = wrist_limit(flexion_degree-d_flexion, rotation_degree)
             wrist_tf(d_tf[0], d_tf[1])
-        elif action == 3:
+        elif all(x == 3 for x in action):
             d_tf = wrist_limit(flexion_degree, rotation_degree-d_rotation)
             wrist_tf(d_tf[0], d_tf[1])
-        elif action == 4:
+        elif all(x == 4 for x in action):
             d_tf = wrist_limit(flexion_degree, rotation_degree+d_rotation)
             wrist_tf(d_tf[0], d_tf[1])
-        elif action == 5 or keyboard.is_pressed('enter'):
+        elif all(x == 5 for x in action) or keyboard.is_pressed('enter'):
             print("Grasping!")
-            grasp()
+            grasp_other()
             t_end = time.time()
             print("Trial %d end recording" % trial)
             duration = t_end - t_start
@@ -161,30 +190,8 @@ if __name__ == "__main__":
             saved_num += 1
             time.sleep(1.5)
             release_grasp()
-        # ============================= kbd control part ======================= #
-        if keyboard.is_pressed('space'):
-            log_hand = np.array(target_gpose).reshape(1,7)
-            print("Trial %d is Recording" % trial)
-            record = True
-            t_start = time.time()
-        elif keyboard.is_pressed('backspace'):
-            print("reset pose")
-            release_grasp()
-            wrist_tf(0, 45)
-            time.sleep(1.5)
-            flexion_degree, rotation_degree = read_wrist()
-            # print(flexion_degree, rotation_degree)
-        elif keyboard.is_pressed('shift'):
-            trial = saved_num + 1
-            print("New trial: ", trial)
-            print("======================================================")
-            record = False
-        elif keyboard.is_pressed('esc'):
-            print("END")
-            vis.destroy_window()
-            break
         
-    wrist_tf(0, -45)
+    wrist_tf(20, 45)
     canDLL.VCI_CloseDevice(VCI_USBCAN2, 0) 
 
 

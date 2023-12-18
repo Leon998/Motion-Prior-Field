@@ -16,7 +16,7 @@ import torch
 import keyboard
 
 
-CONTROLLER = "kbd"
+CONTROLLER = "auto"
 
 # 连接物理引擎
 physicsCilent = p.connect(p.GUI)
@@ -100,7 +100,7 @@ while not keyboard.is_pressed('esc'):
             idx = pred.argmax(0).item()
             pred_gpose = poses[idx]
             euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
-            if keyboard.is_pressed('ctrl'):
+            if keyboard.is_pressed('enter'):
                 print(euler_joint)  # 欧拉角对应手腕顺序是翻、切 旋
                 joint_position = [-item*pi/180 for item in euler_joint]
                 auto_controller(robot_id, p, [joint_position[2], joint_position[1], joint_position[0]])  # 顺序是旋、切、翻

@@ -141,7 +141,7 @@ def release_grasp():
 
 if __name__ == "__main__":
     flexion_degree, rotation_degree = 0, 0
-    grasp = grasp_handle
+    grasp_type = grasp_handle
     while True:
         if keyboard.is_pressed('ctrl'):
             wrist_tf(0, -45)
@@ -154,7 +154,7 @@ if __name__ == "__main__":
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
         elif keyboard.is_pressed('enter'):
-            grasp()
+            grasp_type()
             # hand_tf(0xA1, 0x02)
         elif keyboard.is_pressed('space'):
             # release_grasp()

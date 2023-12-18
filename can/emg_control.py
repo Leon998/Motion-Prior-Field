@@ -3,6 +3,9 @@ import time, keyboard
 import numpy as np
 from hand_control import *
 import redis
+from collections import deque
+
+
  
 
 if __name__ == "__main__":
@@ -10,31 +13,32 @@ if __name__ == "__main__":
     flexion_degree, rotation_degree = 0, 0
     d_flexion = 5
     d_rotation = 10
-    grasp_type = grasp_handle
+    grasp = grasp_handle
+    action = deque(maxlen=5)
     while True:
-        action = int(rds.get('action'))
+        action.append(int(rds.get('action')))
         flexion_degree, rotation_degree = read_wrist()
-        if action == 0:
+        if all(x == 0 for x in action):
             pass
-        elif action == 1:
+        elif all(x == 1 for x in action):
             d_tf = wrist_limit(flexion_degree+d_flexion, rotation_degree)
             wrist_tf(d_tf[0], d_tf[1])
-        elif action == 2:
+        elif all(x == 2 for x in action):
             d_tf = wrist_limit(flexion_degree-d_flexion, rotation_degree)
             wrist_tf(d_tf[0], d_tf[1])
-        elif action == 3:
+        elif all(x == 3 for x in action):
             d_tf = wrist_limit(flexion_degree, rotation_degree-d_rotation)
             wrist_tf(d_tf[0], d_tf[1])
-        elif action == 4:
+        elif all(x == 4 for x in action):
             d_tf = wrist_limit(flexion_degree, rotation_degree+d_rotation)
             wrist_tf(d_tf[0], d_tf[1])
-        elif action == 5 or keyboard.is_pressed('enter'):
+        elif all(x == 5 for x in action) or keyboard.is_pressed('enter'):
             print("Grasping!")
             grasp()
             time.sleep(1.5)
             release_grasp()
         # ============================= kbd control part ======================= #
-        elif keyboard.is_pressed('backspace'):
+        if keyboard.is_pressed('backspace'):
             print("reset pose")
             release_grasp()
             wrist_tf(0, 45)
@@ -42,7 +46,7 @@ if __name__ == "__main__":
             flexion_degree, rotation_degree = read_wrist()
             # print(flexion_degree, rotation_degree)
 
-        elif keyboard.is_pressed('esc'):
+        if keyboard.is_pressed('esc'):
             print("END")
             break
         
