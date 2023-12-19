@@ -17,9 +17,9 @@ class Emg_onlineAnalysis():
         self.window_step = int(window_step*fs)  # 间隔100个点
         self.dev = pytrigno.TrignoEMG(channel_range = (lowCh, highCh), samples_per_read = 27, host = host, buffered = True)
         self.window = np.zeros((highCh - lowCh + 1, 0))
-        self.clf_lists = [joblib.load('emg_decoding/' + str(subject) + '_wrist.m')]
+        self.clf_lists = [joblib.load('emg_decoding/' + str(subject) + '_data/' + 'model.m')]
         self.onlineDecode = EMGAnalysis(class_num = class_num, channel_num = highCh-lowCh+1, st = 1, nd = 6,
-                          model_name = str(subject) + '_wrist', classifier = 0)
+                          model_name = 'emg_decoding/' + str(subject) + '_data/' + 'model', classifier = 0)
         self.buffer = np.zeros((highCh - lowCh + 1,0))
         self.window_num = int((0.3-0.05)/window_step)#由大部分文章迟滞300ms，所以取为5
         self.predictBox = np.zeros((self.window_num), dtype = int)

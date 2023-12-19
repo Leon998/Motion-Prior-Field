@@ -67,7 +67,7 @@ p.setRealTimeSimulation(0)
 p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
 # p.configureDebugVisualizer(p.COV_ENABLE_GUI, 1)
 p.resetDebugVisualizerCamera(cameraDistance=0.9, cameraYaw=-90,
-                                 cameraPitch=-18, cameraTargetPosition=obj_Pos)
+                                 cameraPitch=-20, cameraTargetPosition=obj_Pos)
 
 
 T_oh = np.zeros((1, 7))

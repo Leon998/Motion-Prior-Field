@@ -6,7 +6,9 @@ import redis
 from collections import deque
 
 
- 
+action = deque(maxlen=5)
+grasp_action = deque(maxlen=8)
+
 
 if __name__ == "__main__":
     rds = redis.Redis(host='localhost', port=6379, decode_responses=True)
@@ -15,8 +17,10 @@ if __name__ == "__main__":
     d_rotation = 10
     grasp = grasp_handle
     action = deque(maxlen=5)
+    grasp_action = deque(maxlen=8)
     while True:
         action.append(int(rds.get('action')))
+        grasp_action.append(int(rds.get('action')))
         flexion_degree, rotation_degree = read_wrist()
         if all(x == 0 for x in action):
             pass
@@ -32,7 +36,7 @@ if __name__ == "__main__":
         elif all(x == 4 for x in action):
             d_tf = wrist_limit(flexion_degree, rotation_degree+d_rotation)
             wrist_tf(d_tf[0], d_tf[1])
-        elif all(x == 5 for x in action) or keyboard.is_pressed('enter'):
+        elif all(x == 5 for x in grasp_action) or keyboard.is_pressed('enter'):
             print("Grasping!")
             grasp()
             time.sleep(1.5)
@@ -41,7 +45,7 @@ if __name__ == "__main__":
         if keyboard.is_pressed('backspace'):
             print("reset pose")
             release_grasp()
-            wrist_tf(0, 45)
+            wrist_tf(20, 45)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
             # print(flexion_degree, rotation_degree)

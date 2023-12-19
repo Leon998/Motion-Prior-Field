@@ -7,13 +7,20 @@ can/*
 
 experiment/data
 
+emg_decoding/*
+!emg_decoding/EMGFeatures.py
+!emg_decoding/process.py
+!emg_decoding/pytrigno.py
+!emg_decoding/sever.py
+!emg_decoding/train.py
+
 models/
 mocap/
 obj_coordinate/
 mocap_streaming/*
 !mocap_streaming/mocap_client_archive.py
 !mocap_streaming/mocap_client.py
-!mocap_streaming/mocap_server.py
+!mocap_streaming/server.py
 !mocap_streaming/NatNetClient.py
 !mocap_streaming/DataDescriptions.py
 !mocap_streaming/MoCapData.py

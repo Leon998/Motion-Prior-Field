@@ -15,6 +15,7 @@ import keyboard, time
 import math, random
 import argparse
 from collections import deque
+from can.emg_control import action, grasp_action
 
 
 def target_grasp_init(object_cls, poses, target_idx):
@@ -86,7 +87,6 @@ if __name__ == "__main__":
     trial = 1
     saved_num = 0
     grasp_type = grasp_other
-    action = deque(maxlen=5)
     
     while True:
         # hand
@@ -139,7 +139,7 @@ if __name__ == "__main__":
         if keyboard.is_pressed('backspace'):
             print("reset pose")
             release_grasp()
-            wrist_tf(0, 45)
+            wrist_tf(20, 45)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
             # print(flexion_degree, rotation_degree)
@@ -161,6 +161,7 @@ if __name__ == "__main__":
         d_flexion = 5
         d_rotation = 10
         action.append(int(r.get('action')))
+        grasp_action.append(int(r.get('action')))
         flexion_degree, rotation_degree = read_wrist()
         if all(x == 0 for x in action):
             pass
@@ -176,7 +177,7 @@ if __name__ == "__main__":
         elif all(x == 4 for x in action):
             d_tf = wrist_limit(flexion_degree, rotation_degree+d_rotation)
             wrist_tf(d_tf[0], d_tf[1])
-        elif all(x == 5 for x in action) or keyboard.is_pressed('enter'):
+        elif all(x == 5 for x in grasp_action) or keyboard.is_pressed('enter'):
             print("Grasping!")
             grasp_other()
             t_end = time.time()

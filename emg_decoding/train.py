@@ -123,7 +123,7 @@ if __name__ == "__main__":
     print("trigger1: ", trigger1)
     # =================================================== #
     classify1 = EMGAnalysis(class_num = class_num, channel_num = highCh-lowCh+1, st = 1, nd = 5,
-                          model_name = 'emg_decoding/' + str(subject) + '_wrist', classifier = 0)
+                          model_name = 'emg_decoding/' + str(subject) + '_data/' + 'model', classifier = 0)
     classify1.data = data
     classify1.trigger = trigger1
     acc1, std1 = classify1.crossValidate()
