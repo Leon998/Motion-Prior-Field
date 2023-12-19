@@ -44,9 +44,9 @@ robot_id = p.loadURDF(robot_path, startPos, startOrientation, useFixedBase=1)
 # 加载物体，并随机一个位姿
 object_cls = objects['mug']
 obj_path = object_cls.file_path
-obj_startPos = [0.5, 0, height]
-obj_startOrientation = p.getQuaternionFromEuler([0, 0, 0.5*pi])
-obj = object_init(obj_path, q_init=obj_startOrientation, t_init=obj_startPos, p=p)
+obj_Pos = [0.5, 0, height]
+obj_Orientation = p.getQuaternionFromEuler([0, 0, 0.5*pi])
+obj = object_init(obj_path, q_init=obj_Orientation, t_init=obj_Pos, p=p)
 # ====================== gpose prediction module initialization ======================== #
 poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
 model = torch.load('prediction/classify/trained_models/' + object_cls.name + '/uncluster_noisy.pkl')
@@ -63,12 +63,18 @@ p.setRealTimeSimulation(0)
 p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
 # p.configureDebugVisualizer(p.COV_ENABLE_GUI, 1)
 p.resetDebugVisualizerCamera(cameraDistance=0.9, cameraYaw=-90,
-                                 cameraPitch=-37, cameraTargetPosition=obj_startPos)
+                                 cameraPitch=-37, cameraTargetPosition=obj_Pos)
 
 
 Q_wh, T_wh, _, _, num_frame = read_data("simulation/trajectory/arm_000.csv")
 T_oh = np.zeros((1, 7))
 i = 0
+debug_text_id = p.addUserDebugText(
+    text="",
+    textPosition=[0.5, 0, 0.9],
+    textColorRGB=[0, 1, 0],
+    textSize=1,
+    )
 while not keyboard.is_pressed('esc'):
     p.stepSimulation()
     time.sleep(1./240.)
@@ -78,22 +84,30 @@ while not keyboard.is_pressed('esc'):
         t_base += np.array(startPos)
         p.resetBasePositionAndOrientation(robot_id, t_base, q_base)
         # 物体自身旋转
-        q_wo, t_wo = obj_startOrientation, obj_startPos
+        q_wo, t_wo = obj_Orientation, obj_Pos
         q_wo = object_rotation(q_wo)
         # target_gpose
         target_gpose_wdc = gpose2wdc(target_gpose, q_wo, t_wo)
         p.resetBasePositionAndOrientation(target_hand_id, target_gpose_wdc[4:], target_gpose_wdc[0:4])
+        # 获取手部姿态
+        hand_state = p.getLinkState(robot_id, 2)
+        t_wh, q_wh = hand_state[0], hand_state[1]
+        t_wh, q_wh, t_wo, q_wo = np.array(t_wh), np.array(q_wh), np.array(t_wo), np.array(q_wo)
+        q_oh, t_oh, _ = coordinate_transform(q_wh, t_wh, q_wo, t_wo)
+        # print("t_wh: ", q_wh, t_wh)
+        # print("t_wo: ", q_wo, t_wo)
+        # print("t_oh: ", q_oh, t_oh)
+        hand_pose = np.concatenate((q_oh, t_oh), axis=0)
+        T_oh =np.concatenate((T_oh, hand_pose.reshape(1,7)), axis=0)
+        debug_text_id = p.addUserDebugText(
+            text=str(format(t_oh[0], '.3f')),
+            textPosition=[0.5, 0, 0.9],
+            textColorRGB=[0, 1, 0] if t_oh[0]>0 else [1, 0, 0],
+            textSize=2.5,
+            replaceItemUniqueId=debug_text_id
+            )
         if CONTROLLER == "auto":
-            # 获取手部姿态
-            hand_state = p.getLinkState(robot_id, 2)
-            t_wh, q_wh = hand_state[0], hand_state[1]
-            t_wh, q_wh, t_wo, q_wo = np.array(t_wh), np.array(q_wh), np.array(t_wo), np.array(q_wo)
-            q_oh, t_oh, _ = coordinate_transform(q_wh, t_wh, q_wo, t_wo)
-            print("t_wh: ", q_wh, t_wh)
-            print("t_wo: ", q_wo, t_wo)
-            print("t_oh: ", q_oh, t_oh)
-            hand_pose = np.concatenate((q_oh, t_oh), axis=0)
-            T_oh =np.concatenate((T_oh, hand_pose.reshape(1,7)), axis=0)
+            
             # ======================== grasp pose prediction ============================= #
             x = torch.from_numpy(hand_pose).type(torch.FloatTensor).to(device)
             pred = model(x)
