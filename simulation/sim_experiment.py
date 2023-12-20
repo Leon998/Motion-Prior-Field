@@ -8,6 +8,7 @@ from math import pi
 import numpy as np
 from simulation.tools import *
 from simulation.controller import auto_controller, kbd_controller
+from myutils.add_gauss_noise import add_gaussian_noise, noise_hand
 from scipy.spatial.transform import Rotation as R
 from create_object import object_init
 from myutils.object_config import objects
@@ -17,7 +18,18 @@ import keyboard
 import redis
 
 
-CONTROLLER = "auto"
+
+height = 0.7  # 比较下来发现的高度使物体刚好在桌上
+subject_arm_bias = 0.2  # 测量受试者距离实验室桌面的高度（对应了pybullet中距离xy平面的高度）
+trial_num = 3
+TRO = False
+# object
+T_wo = [[0.5, 0, height], [0.4, 0.04, height],[0.45, -0.05, height]]
+Q_wo = [p.getQuaternionFromEuler([0, 0, 0.5*pi]), 
+        p.getQuaternionFromEuler([0, 0, -0.5*pi]), 
+        p.getQuaternionFromEuler([0, 0, 0.75*pi])]
+# target_gposes
+target_idx = [5, 75, 125]
 
 # 连接物理引擎
 physicsCilent = p.connect(p.GUI)
@@ -29,10 +41,6 @@ p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 # 设置环境重力加速度
 p.setGravity(0, 0, 0)
-
-rotate_frame = True
-height = 0.7  # 比较下来发现的高度使物体刚好在桌上
-subject_arm_bias = 0.2  # 测量受试者距离实验室桌面的高度（对应了pybullet中距离xy平面的高度）
 # 加载URDF模型，此处是加载蓝白相间的陆地
 p.loadURDF("plane.urdf")
 p.loadURDF("table/table.urdf", [0.5, 0, 0], p.getQuaternionFromEuler([0, 0, 0.5*pi]))
@@ -56,7 +64,6 @@ model.eval()
 # gpose
 hand_path = "simulation/hand_left_v2/urdf/hand_left_v2.urdf"
 target_hand_id = p.loadURDF(hand_path, useFixedBase=1)
-target_gpose = poses[5]
 # pred_pose
 pred_hand_path = "simulation/hand_left_v2/urdf/hand_left_v2_pred.urdf"
 pred_hand_id = p.loadURDF(pred_hand_path, useFixedBase=1)
@@ -68,8 +75,6 @@ p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
 # p.configureDebugVisualizer(p.COV_ENABLE_GUI, 1)
 p.resetDebugVisualizerCamera(cameraDistance=0.9, cameraYaw=-90,
                                  cameraPitch=-20, cameraTargetPosition=obj_Pos)
-
-
 T_oh = np.zeros((1, 7))
 debug_text_id = p.addUserDebugText(
     text="",
@@ -78,6 +83,8 @@ debug_text_id = p.addUserDebugText(
     textSize=1,
     )
 
+trial = 1
+
 while not keyboard.is_pressed('esc'):
     t_base = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
     q_base = np.array([float(i) for i in r.get('hand_rotation')[1:-1].split(',')])
@@ -85,10 +92,13 @@ while not keyboard.is_pressed('esc'):
     q_base, t_base = frame_rotation(q_base, t_base)
     t_base += np.array(startPos)
     p.resetBasePositionAndOrientation(robot_id, t_base, q_base)
+    # 物体
+    q_wo, t_wo = Q_wo[trial-1], T_wo[trial-1]
+    p.resetBasePositionAndOrientation(obj.object_id, t_wo, q_wo)
     # 物体自身旋转
-    q_wo, t_wo = obj_Orientation, obj_Pos
     q_wo = object_rotation(q_wo)
     # target_gpose
+    target_gpose = poses[target_idx[trial-1]]
     target_gpose_wdc = gpose2wdc(target_gpose, q_wo, t_wo)
     p.resetBasePositionAndOrientation(target_hand_id, target_gpose_wdc[4:], target_gpose_wdc[0:4])
     # 获取手部姿态
@@ -109,24 +119,31 @@ while not keyboard.is_pressed('esc'):
             textSize=2.5,
             replaceItemUniqueId=debug_text_id
             )
-    if CONTROLLER == "auto":
-        # ======================== grasp pose prediction ============================= #
-        x = torch.from_numpy(hand_pose).type(torch.FloatTensor).to(device)
-        pred = model(x)
-        idx = pred.argmax(0).item()
-        pred_gpose = poses[idx]
-        # pred_gpose
-        pred_gpose_wdc = gpose2wdc(pred_gpose, q_wo, t_wo)
-        p.resetBasePositionAndOrientation(pred_hand_id, pred_gpose_wdc[4:], pred_gpose_wdc[0:4])
-        euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
-        if keyboard.is_pressed('enter'):
-            print(euler_joint)  # 欧拉角对应手腕顺序是翻、切 旋
-            joint_position = [-item*pi/180 for item in euler_joint]
-            auto_controller(robot_id, p, [joint_position[2], joint_position[1], joint_position[0]])  # 顺序是旋、切、翻
-    elif CONTROLLER == "kbd":
-        kbd_controller(robot_id, p)
+    # ======================== grasp pose prediction ============================= #
+    x = torch.from_numpy(hand_pose).type(torch.FloatTensor).to(device)
+    pred = model(x)
+    idx = pred.argmax(0).item()
+    # pred_gpose
+    pred_gpose = poses[idx]
+    if TRO:
+        pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.02,std_t=0.001)
+    else:
+        pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.001,std_t=0)
+    pred_gpose_wdc = gpose2wdc(pred_gpose, q_wo, t_wo)
+    p.resetBasePositionAndOrientation(pred_hand_id, pred_gpose_wdc[4:], pred_gpose_wdc[0:4])
+    euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
+    if keyboard.is_pressed('enter'):
+        print(euler_joint)  # 欧拉角对应手腕顺序是翻、切 旋
+        joint_position = [-item*pi/180 for item in euler_joint]
+        auto_controller(robot_id, p, [joint_position[2], joint_position[1], joint_position[0]])  # 顺序是旋、切、翻
+    # ============================================================================ #
     if keyboard.is_pressed('backspace'):
         auto_controller(robot_id, p, [0, 0, 0])
+    if keyboard.is_pressed('shift'):
+        time.sleep(1)
+        trial += 1
+    if trial > trial_num:
+        break
 
     p.stepSimulation()
     time.sleep(1./240.)

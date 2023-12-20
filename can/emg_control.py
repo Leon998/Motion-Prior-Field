@@ -1,7 +1,10 @@
+import os
+import sys
+sys.path.append(os.getcwd())
 from ctypes import *
 import time, keyboard
 import numpy as np
-from hand_control import *
+from can.hand_control import *
 import redis
 from collections import deque
 
