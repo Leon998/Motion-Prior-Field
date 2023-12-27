@@ -178,7 +178,7 @@ if __name__ == "__main__":
         # ============================== semi-auto control ============================= #
         action.append(int(r.get('action')))
         grasp_action.append(int(r.get('action')))
-        if all(x == 2 for x in action) or keyboard.is_pressed('ctrl'):
+        if all(x == 1 for x in action) or keyboard.is_pressed('ctrl'):
             print("wrist joint driving")
             euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
             flexion_degree += euler_joint[0]
