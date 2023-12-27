@@ -38,9 +38,9 @@ trial_num = args.trial
 # Subject arm bias
 subject_arm_bias = args.bias  # 测量受试者距离实验室桌面的高度（对应了pybullet中距离xy平面的高度）
 # object init
-height = 0.7  # 比较下来发现的高度使物体刚好在桌上
 with open('simulation/obj_init.yml', 'r', encoding='utf-8') as f:
     obj_init = yaml.load(f.read(), Loader=yaml.FullLoader)
+height = obj_init[object_cls.name]["height"]  # 比较下来发现的高度使物体刚好在桌上
 T_wo = obj_init[object_cls.name]["trans"]
 Q_wo = obj_init[object_cls.name]["rot"]
 target_idx = obj_init[object_cls.name]["target_idx"]
