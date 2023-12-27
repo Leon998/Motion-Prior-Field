@@ -16,20 +16,34 @@ from myutils.utils import *
 import torch
 import keyboard
 import redis
+import argparse, yaml
 
 
-
+parser = argparse.ArgumentParser(description='MPF')
+parser.add_argument('--name','-n',type=str, default = "shixu",required=True,help="subject name")
+parser.add_argument('--obj','-o',type=str, default = "mug",required=True,help="object class")
+parser.add_argument('--compare','-c',type=bool, default = False,required=False,help="TRO comparing")
+parser.add_argument('--trial','-t',type=int, default = 3,required=False,help="trial number")
+parser.add_argument('--bias','-b',type=float, default = 0.2,required=False,help="subject arm bias")
+args = parser.parse_args()
+# ======================= 实验参数配置 ================================== #
+# Subject name
+subject = args.name
+# Object name
+object_cls = objects[args.obj]
+# Comparing
+TRO = args.compare
+# Trial number
+trial_num = args.trial
+# Subject arm bias
+subject_arm_bias = args.bias  # 测量受试者距离实验室桌面的高度（对应了pybullet中距离xy平面的高度）
+# object init
 height = 0.7  # 比较下来发现的高度使物体刚好在桌上
-subject_arm_bias = 0.2  # 测量受试者距离实验室桌面的高度（对应了pybullet中距离xy平面的高度）
-trial_num = 3
-TRO = False
-# object
-T_wo = [[0.5, 0, height], [0.4, 0.04, height],[0.45, -0.05, height]]
-Q_wo = [p.getQuaternionFromEuler([0, 0, 0.5*pi]), 
-        p.getQuaternionFromEuler([0, 0, -0.5*pi]), 
-        p.getQuaternionFromEuler([0, 0, 0.75*pi])]
-# target_gposes
-target_idx = [5, 75, 125]
+with open('simulation/obj_init.yml', 'r', encoding='utf-8') as f:
+    obj_init = yaml.load(f.read(), Loader=yaml.FullLoader)
+T_wo = obj_init[object_cls.name]["trans"]
+Q_wo = obj_init[object_cls.name]["rot"]
+target_idx = obj_init[object_cls.name]["target_idx"]
 
 # 连接物理引擎
 physicsCilent = p.connect(p.GUI)
@@ -52,7 +66,6 @@ startPos = [0, 0, height-subject_arm_bias]
 startOrientation = p.getQuaternionFromEuler([0, 0, 0])
 robot_id = p.loadURDF(robot_path, startPos, startOrientation, useFixedBase=1)
 # 加载物体，并随机一个位姿
-object_cls = objects['mug']
 obj_path = object_cls.file_path
 obj_Pos = [0.5, 0, height]
 obj_Orientation = p.getQuaternionFromEuler([0, 0, 0.5*pi])
@@ -111,7 +124,7 @@ while not keyboard.is_pressed('esc'):
     print("t_oh: ", q_oh, t_oh)
     hand_pose = np.concatenate((q_oh, t_oh), axis=0)
     T_oh =np.concatenate((T_oh, hand_pose.reshape(1,7)), axis=0)
-    dist_oh = -t_oh[2]*100  # 手物在正对方向上的距离
+    dist_oh = (t_wo[0] - t_wh[0])*100 - 5  # 手物在正对方向上的距离
     debug_text_id = p.addUserDebugText(
             text=str(format(dist_oh, '.1f')) + " cm",
             textPosition=[0.5, 0, 0.9],
