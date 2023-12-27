@@ -7,6 +7,7 @@ from myutils.object_config import objects
 from myutils.assets_config import assets
 from myutils.utils import *
 from myutils.add_gauss_noise import add_gaussian_noise, noise_hand
+from scipy.spatial.transform import Rotation as R
 import open3d as o3d
 import torch
 import redis
@@ -88,7 +89,8 @@ if __name__ == "__main__":
     prefix = save_path + object_cls.name + '_'
     if TRO:
         prefix = prefix + 'TRO_'
-
+    g_tro = np.concatenate((np.array([0.1, -0.1, 0.2, -0.2]), np.array([0, 0, 0])))
+    
     trial = 1
     saved_num = 0
     grasp_type = grasp_other
@@ -118,11 +120,11 @@ if __name__ == "__main__":
         idx = pred.argmax(0).item()
         pred_gpose = poses[idx]
         if TRO:
-            pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.02,std_t=0.001)
+            tro_gpose = pred_gpose + g_tro
+            pred_gpose_wdc = gpose2wdc(tro_gpose, q_wo, t_wo)
         else:
-            pred_gpose = noise_hand(hand_pose=pred_gpose,std_q=0.001,std_t=0)
-        pred_gpose_wdc = gpose2wdc(pred_gpose, q_wo, t_wo)
-
+            pred_gpose_wdc = gpose2wdc(pred_gpose, q_wo, t_wo)
+        pred_gpose_wdc = noise_hand(hand_pose=pred_gpose_wdc,std_q=0.002,std_t=0.005)
         # ============================== update transform ============================= #
         hand.update_transform(hand_pose_wdc)
         target_hand.update_transform(target_gpose_wdc)
@@ -176,7 +178,7 @@ if __name__ == "__main__":
         # ============================== semi-auto control ============================= #
         action.append(int(r.get('action')))
         grasp_action.append(int(r.get('action')))
-        if all(x == 1 for x in action) or keyboard.is_pressed('ctrl'):
+        if all(x == 2 for x in action) or keyboard.is_pressed('ctrl'):
             print("wrist joint driving")
             euler_joint, r_transform = wrist_joint_transform(hand_pose, pred_gpose)
             flexion_degree += euler_joint[0]
