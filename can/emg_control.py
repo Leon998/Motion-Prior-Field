@@ -9,8 +9,8 @@ import redis
 from collections import deque
 
 
-action = deque(maxlen=5)
-grasp_action = deque(maxlen=8)
+action = deque(maxlen=4)
+grasp_action = deque(maxlen=7)
 
 
 if __name__ == "__main__":

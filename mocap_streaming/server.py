@@ -14,7 +14,10 @@ def receive_rigid_body_frame(r, new_id, position, rotation):
     # print("Received frame for rigid body", new_id)
     # print("Position:", position)
     # print("Rotation", rotation)
-    if new_id == 1:
+    if new_id == 0:
+        r.set('arm_position', str(position), ex=1)
+        r.set('arm_rotation', str(rotation), ex=1)
+    elif new_id == 1:
         r.set('hand_position', str(position), ex=1)
         r.set('hand_rotation', str(rotation), ex=1)
     else:

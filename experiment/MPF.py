@@ -122,6 +122,7 @@ if __name__ == "__main__":
         if TRO:
             tro_gpose = pred_gpose + g_tro
             pred_gpose_wdc = gpose2wdc(tro_gpose, q_wo, t_wo)
+            grasp_type = grasp_other
         else:
             pred_gpose_wdc = gpose2wdc(pred_gpose, q_wo, t_wo)
         pred_gpose_wdc = noise_hand(hand_pose=pred_gpose_wdc,std_q=0.002,std_t=0.005)

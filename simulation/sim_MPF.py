@@ -101,8 +101,8 @@ g_tro = np.concatenate((np.array([0.1, -0.1, 0.2, -0.2]), np.array([0, 0, 0])))
 trial = 1
 
 while not keyboard.is_pressed('esc'):
-    t_base = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
-    q_base = np.array([float(i) for i in r.get('hand_rotation')[1:-1].split(',')])
+    t_base = np.array([float(i) for i in r.get('arm_position')[1:-1].split(',')])
+    q_base = np.array([float(i) for i in r.get('arm_rotation')[1:-1].split(',')])
     # robot绕世界x轴旋转
     q_base, t_base = frame_rotation(q_base, t_base)
     t_base += np.array(startPos)
@@ -129,7 +129,7 @@ while not keyboard.is_pressed('esc'):
     dist_oh = (t_wo[0] - t_wh[0])*100 - 5  # 手物在正对方向上的距离
     debug_text_id = p.addUserDebugText(
             text=str(format(dist_oh, '.1f')) + " cm",
-            textPosition=[0.5, 0, 0.9],
+            textPosition=[0.5, 0, 1.1],
             textColorRGB=[0, 1, 0] if dist_oh>0 else [1, 0, 0],
             textSize=2.5,
             replaceItemUniqueId=debug_text_id
