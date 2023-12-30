@@ -13,7 +13,7 @@ from can.hand_control import *
 import time
 
 
-approach_time = 3
+approach_time = 3  # 看到GO之后经过approach_time秒进入腕部运动
 gap_time = 2 # wrist到grasp之间的时间
 hold_time = 2.5
 
@@ -22,62 +22,62 @@ def init_pose(t=2.5,f=30):
     time.sleep(t)
 
 def go_mug():
-    init_pose()
-    print("GO MUG!")
     # handle
+    init_pose()
+    print("GO MUG handle!")
     time.sleep(approach_time)  #靠近的时间
     wrist_tf(0, -42)  # 抓把手的角度
     time.sleep(gap_time)  # 准备抓取
     grasp_handle()
     release_grasp(t=hold_time)  # 抓取持续时间
     # top
-    wrist_tf(15, 45)
+    init_pose(t=1, f=15)
+    print("GO MUG top!")
     time.sleep(approach_time)  #靠近的时间
     wrist_tf(-30, 45)  # 抓top的角度
     time.sleep(gap_time)  # 准备抓取
     grasp_thin()
     release_grasp(t=hold_time)  # 抓取持续时间
     # end
-    wrist_tf(30, 45)
-    time.sleep(2)
+    init_pose()
 
 def go_pottted_meat_can():
+    # top
     init_pose()
-    print("GO POTTED!")
-    # potted_meat_can top
+    print("GO POTTED top!")
     time.sleep(approach_time)  # 靠近的时间
     wrist_tf(-15, 45)
     time.sleep(gap_time-1)  # 准备抓取
     # change mind
-    # potted_meat_can side
-    time.sleep(approach_time-1)  # 重新靠近的时间
+    # side
+    print("GO POTTED side!")
+    time.sleep(approach_time)  # 重新靠近的时间
     wrist_tf(0, -20)
     time.sleep(gap_time)  # 准备抓取
     grasp_other()
     release_grasp(t=hold_time)  # 抓取持续时间
     # end
-    wrist_tf(30, 45)
-    time.sleep(2)
+    init_pose()
 
 def go_mustard_bottle():
+    # side
     init_pose()
-    print("GO MUSTARD!")
-    # mustard_bottle side
+    print("GO MUSTARD side!")
     time.sleep(approach_time)  # 靠近的时间
     wrist_tf(-15, -25)
     time.sleep(gap_time)  # 准备抓取
     grasp_other()
     release_grasp(t=hold_time)  # 抓取持续时间
-    # mustard_bottle top
-    wrist_tf(15, 45)
+    # top
+    init_pose(t=1, f=15)
+    print("GO MUG top!")
     time.sleep(approach_time)  #靠近的时间
     wrist_tf(-30, 40)
     time.sleep(gap_time)  # 准备抓取
     grasp_other()
     release_grasp(t=hold_time)  # 抓取持续时间
     # end
-    wrist_tf(30, 45)
-    time.sleep(2)
+    init_pose()
 
 
 
