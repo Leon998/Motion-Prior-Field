@@ -47,7 +47,7 @@ robot_id = p.loadURDF(robot_path, startPos, startOrientation, useFixedBase=1)
 object_cls = objects['mug']
 obj_path = object_cls.file_path
 obj_Pos = [0.5, 0, height]
-obj_Orientation = p.getQuaternionFromEuler([0, 0, 0.5*pi])
+obj_Orientation = p.getQuaternionFromEuler([0, 0, 0.52*pi])
 obj = object_init(obj_path, q_init=obj_Orientation, t_init=obj_Pos, p=p)
 # ====================== gpose prediction module initialization ======================== #
 poses = np.loadtxt('obj_coordinate/pcd_gposes/' + object_cls.name + '/gposes_raw.txt')
@@ -66,21 +66,15 @@ joints_indexes = [i for i in range(p.getNumJoints(robot_id)) if p.getJointInfo(r
 p.setRealTimeSimulation(0)
 p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
 # p.configureDebugVisualizer(p.COV_ENABLE_GUI, 1)
-p.resetDebugVisualizerCamera(cameraDistance=0.9, cameraYaw=-90,
+p.resetDebugVisualizerCamera(cameraDistance=1, cameraYaw=-90,
                                  cameraPitch=-20, cameraTargetPosition=obj_Pos)
 
 
 T_oh = np.zeros((1, 7))
-debug_text_id = p.addUserDebugText(
-    text="",
-    textPosition=[0.5, 0, 0.9],
-    textColorRGB=[0, 1, 0],
-    textSize=1,
-    )
 
 while not keyboard.is_pressed('esc'):
-    t_base = np.array([float(i) for i in r.get('hand_position')[1:-1].split(',')])
-    q_base = np.array([float(i) for i in r.get('hand_rotation')[1:-1].split(',')])
+    t_base = np.array([float(i) for i in r.get('arm_position')[1:-1].split(',')])
+    q_base = np.array([float(i) for i in r.get('arm_rotation')[1:-1].split(',')])
     # robot绕世界x轴旋转
     q_base, t_base = frame_rotation(q_base, t_base)
     t_base += np.array(startPos)
@@ -101,14 +95,6 @@ while not keyboard.is_pressed('esc'):
     print("t_oh: ", q_oh, t_oh)
     hand_pose = np.concatenate((q_oh, t_oh), axis=0)
     T_oh =np.concatenate((T_oh, hand_pose.reshape(1,7)), axis=0)
-    dist_oh = -t_oh[2]*100  # 手物在正对方向上的距离
-    debug_text_id = p.addUserDebugText(
-            text=str(format(dist_oh, '.1f')) + " cm",
-            textPosition=[0.5, 0, 0.9],
-            textColorRGB=[0, 1, 0] if dist_oh>0 else [1, 0, 0],
-            textSize=2.5,
-            replaceItemUniqueId=debug_text_id
-            )
     if CONTROLLER == "auto":
         # ======================== grasp pose prediction ============================= #
         x = torch.from_numpy(hand_pose).type(torch.FloatTensor).to(device)

@@ -24,7 +24,7 @@ class object_init:
             rgbaColor=[1, 1, 1, 1],
             specularColor=[0.4, 0.4, 0],
             visualFramePosition=[0, 0, 0],
-            meshScale=[1.2, 1.2, 1.2],
+            meshScale=[1.3, 1.3, 1.3],
         )
         collision_shape_id = p.createCollisionShape(
             shapeType=p.GEOM_MESH,

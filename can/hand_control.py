@@ -114,13 +114,20 @@ def grasp_handle():
     vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
     time.sleep(1.5)
-    c = (0xAA, 0x55, 0x04, 0x66, 0x03, 0xff, 0x01, 0x88)
+    c = (0xAA, 0x55, 0x04, 0x88, 0x03, 0xff, 0x01, 0x88)
     d = ubyte_3array(0, 0, 0)
     vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
 
-def grasp_mug_top():
-    c = (0xAA, 0x55, 0x03, 0xaa, 0x06, 0x00, 0x02, 0x00)
+def grasp_thin():
+    c = (0xAA, 0x55, 0x04, 0x44, 0x05, 0x00, 0x02, 0x00)
+    d = ubyte_3array(0, 0, 0)
+    vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
+    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+    # time.sleep(1.5)
+
+def grasp_medium():
+    c = (0xAA, 0x55, 0x05, 0x44, 0x05, 0x00, 0x02, 0x00)
     d = ubyte_3array(0, 0, 0)
     vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
@@ -130,18 +137,26 @@ def grasp_other():
     """
     General grasp shape
     """
-    c = (0xAA, 0x55, 0x06, 0x00, 0x06, 0x00, 0x03, 0x00)
+    c = (0xAA, 0x55, 0x06, 0x00, 0x05, 0x88, 0x03, 0x00)
     d = ubyte_3array(0, 0, 0)
     vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
     # time.sleep(1.5)
 
-def release_grasp():
+def grasp_pitcher():
+    c = (0xAA, 0x55, 0x02, 0x00, 0x02, 0x00, 0x02, 0xDD)
+    d = ubyte_3array(0, 0, 0)
+    vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
+    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+    # time.sleep(1.5)
+
+def release_grasp(t=0):
+    if t != 0:
+        time.sleep(t)
     hand_tf(0xA1, 0x01)
 
 if __name__ == "__main__":
     flexion_degree, rotation_degree = 0, 0
-    grasp_type = grasp_handle
     while True:
         if keyboard.is_pressed('ctrl'):
             wrist_tf(0, -45)
@@ -153,9 +168,16 @@ if __name__ == "__main__":
             wrist_tf(30, 45)
             time.sleep(1.5)
             flexion_degree, rotation_degree = read_wrist()
-        elif keyboard.is_pressed('enter'):
-            grasp_type()
-            # hand_tf(0xA1, 0x02)
+        elif keyboard.is_pressed('1'):
+            grasp_handle()
+        elif keyboard.is_pressed('2'):
+            grasp_thin()
+        elif keyboard.is_pressed('3'):
+            grasp_medium()
+        elif keyboard.is_pressed('4'):
+            grasp_other()
+        elif keyboard.is_pressed('5'):
+            grasp_pitcher()
         elif keyboard.is_pressed('space'):
             # release_grasp()
             hand_tf(0xA1, 0x01)

@@ -13,7 +13,7 @@ import redis
 from can.hand_control import *
 import keyboard, time
 import math, random
-from demo import *
+from experiment.demo_v1 import *
 
 
 if __name__ == "__main__":
