@@ -39,7 +39,7 @@ def go_mug():
     grasp_thin()
     release_grasp(t=hold_time)  # 抓取持续时间
     # end
-    init_pose()
+    init_pose(t=1.5)
 
 def go_pottted_meat_can():
     # top
@@ -52,12 +52,12 @@ def go_pottted_meat_can():
     # side
     print("GO POTTED side!")
     time.sleep(approach_time)  # 重新靠近的时间
-    wrist_tf(0, -20)
+    wrist_tf(0, -17)
     time.sleep(gap_time)  # 准备抓取
     grasp_other()
     release_grasp(t=hold_time)  # 抓取持续时间
     # end
-    init_pose()
+    init_pose(t=1.5)
 
 def go_mustard_bottle():
     # side
@@ -77,7 +77,49 @@ def go_mustard_bottle():
     grasp_other()
     release_grasp(t=hold_time)  # 抓取持续时间
     # end
+    init_pose(t=1.5)
+
+def go_drill():
+    # top
     init_pose()
+    print("GO DRILL top!")
+    time.sleep(approach_time)  # 靠近的时间
+    wrist_tf(-30, 45)
+    time.sleep(gap_time)  # 准备抓取
+    grasp_medium()
+    release_grasp(t=hold_time)  # 抓取持续时间
+    # side
+    init_pose(t=2, f=30)
+    print("GO DRILL side!")
+    time.sleep(approach_time)  #靠近的时间
+    wrist_tf(-15, -45)
+    time.sleep(gap_time)  # 准备抓取
+    grasp_medium()
+    release_grasp(t=hold_time)  # 抓取持续时间
+    # end
+    init_pose(t=1.5)
+
+def go_pitcher():
+    # top
+    init_pose()
+    print("GO PITCHER top!")
+    time.sleep(approach_time)  # 靠近的时间
+    wrist_tf(-30, 45)
+    time.sleep(gap_time)  # 准备抓取
+    grasp_medium()
+    release_grasp(t=hold_time+1.5)  # 抓取持续时间
+    # side
+    init_pose(t=2, f=30)
+    print("GO PITCHER side!")
+    time.sleep(approach_time)  #靠近的时间
+    wrist_tf(-10, -45)
+    time.sleep(gap_time)  # 准备抓取
+    grasp_pitcher()
+    time.sleep(2.5)
+    print("put down~")
+    release_grasp(t=hold_time)  # 抓取持续时间
+    # end
+    init_pose(t=1.5)
 
 
 
@@ -87,9 +129,11 @@ if __name__ == "__main__":
     while True:
         if keyboard.is_pressed('space'):
             print("preparing!")
+            go_pitcher()
             go_mug()
             go_pottted_meat_can()
             go_mustard_bottle()
+            go_drill()
         if keyboard.is_pressed('esc'):
             print("end")
             break
