@@ -15,7 +15,7 @@ import time
 
 approach_time = 3  # 看到GO之后经过approach_time秒进入腕部运动
 gap_time = 2 # wrist到grasp之间的时间
-hold_time = 2.5
+hold_time = 3
 
 def init_pose(t=2.5,f=30):
     wrist_tf(f, 45)

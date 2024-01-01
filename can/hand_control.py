@@ -109,11 +109,16 @@ def grasp_handle():
     """
     Grasp type only for mug handle
     """
+    c = (0xAA, 0x55, 0x06, 0x00, 0x05, 0x88, 0x03, 0x00)
+    d = ubyte_3array(0, 0, 0)
+    vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
+    ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
+    time.sleep(0.5)
     c = (0xAA, 0x55, 0x06, 0x66, 0x03, 0xff, 0x03, 0x88)
     d = ubyte_3array(0, 0, 0)
     vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
     ret = canDLL.VCI_Transmit(VCI_USBCAN2, 0, 0, byref(vci_can_obj), 1)
-    time.sleep(1.5)
+    time.sleep(0.5)
     c = (0xAA, 0x55, 0x04, 0x88, 0x03, 0xff, 0x01, 0x88)
     d = ubyte_3array(0, 0, 0)
     vci_can_obj = VCI_CAN_OBJ(0x13141316, 0, 0, 1, 0, 1, 8, c, d)
