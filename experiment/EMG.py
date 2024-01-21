@@ -22,7 +22,7 @@ def target_grasp_init(object_cls, poses, target_idx):
     if object_cls == mug and target_idx < 60:
         grasp_type = grasp_handle
     elif object_cls == mug and target_idx >= 120:
-        grasp_type = grasp_mug_top
+        grasp_type = grasp_thin
     else:
         grasp_type = grasp_other
     target_gpose = poses[target_idx]

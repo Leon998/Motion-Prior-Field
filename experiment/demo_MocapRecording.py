@@ -19,7 +19,7 @@ from experiment.demo_v1 import *
 if __name__ == "__main__":
     # ======================= experiment initialization ================================== #
     # Object name
-    object_cls = objects['mustard_bottle']
+    object_cls = objects['power_drill']
     # pool = redis.ConnectionPool(host='localhost', port=6379, decode_responses=True)
     r = redis.Redis(host='localhost', port=6379, decode_responses=True)  
     # ====================== gpose prediction module initialization ======================== #
@@ -75,7 +75,7 @@ if __name__ == "__main__":
         time.sleep(0.05)
         p1= hand_pose[-3:]
         p2=math.sqrt(pow(p1[0],2)+pow(p1[1],2)+pow(p1[2],2))
-        if p2 > 0.2:
+        if p2 > 0.25:
             # 距离足够远才更新
             vis.poll_events()
             vis.update_renderer()

@@ -16,7 +16,7 @@ if __name__ == "__main__":
     # Source files
     source_files = os.listdir(path)
     source_files.sort()
-    idx = 15  # 随便选的一个抓取的序号
+    idx = 5  # 随便选的一个抓取的序号
     file = source_files[idx]
     # Coordinate
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.15, origin=[0, 0, 0])
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     transformed_hand.rotate(r_transform, center=mid_pose[4:])
 
     transformed_hand.paint_uniform_color([255 / 255, 190 / 255, 122 / 255])
-    meshes.append(transformed_hand)
+    # meshes.append(transformed_hand)
     
     o3d.visualization.draw_geometries(meshes)
 

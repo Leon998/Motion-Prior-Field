@@ -206,13 +206,13 @@ foam_brick = Object(name='foam_brick',
 objects['foam_brick'] = foam_brick
 
 if __name__ == "__main__":
-    object_cls = objects['mustard_bottle']
+    object_cls = objects['power_drill']
     # Coordinate
     coordinate = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.15, origin=[0, 0, 0])
     # Object
     object_mesh = object_cls.init_transform()
     # object_mesh = o3d.io.read_triangle_mesh('models\ycb_models/025_mug/textured.obj', True)
-    meshes = [coordinate, object_mesh]
+    meshes = [object_mesh]
     o3d.visualization.draw_geometries(meshes)
 
     # init_pose = list(object_cls.init_pose)
